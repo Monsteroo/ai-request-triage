@@ -1,11 +1,11 @@
 # Звіт тріажу запитів
 
 - **Джерело:** `data/input_requests.csv`
-- **Згенеровано:** 2026-09-01T17:56:41+00:00
+- **Згенеровано:** 2026-09-01T18:24:00+00:00
 - **Провайдер / модель:** gemini / `gemini-3.5-flash`
-- **Оброблено:** 18 запит(ів) — 12 успішно, 6 з помилкою
-- **Викликів до LLM:** 30 · **токенів:** 23,066 (21,482 вхідних + 1,584 вихідних)
-- **Час виконання:** 331.3 с
+- **Оброблено:** 18 запит(ів) — 0 успішно, 18 з помилкою
+- **Викликів до LLM:** 54 · **токенів:** 0 (0 вхідних + 0 вихідних)
+- **Час виконання:** 1525.5 с
 
 ## Агрегати
 
@@ -13,64 +13,66 @@
 
 | Значення | Кількість | Частка |
 |---|---:|---:|
-| автоматизація | 1 | 8% |
-| інтеграція | 1 | 8% |
-| звіт/аналітика | 5 | 42% |
-| баг/підтримка | 1 | 8% |
-| питання/консультація | 3 | 25% |
-| поза скоупом | 1 | 8% |
+| автоматизація | 0 | — |
+| інтеграція | 0 | — |
+| звіт/аналітика | 0 | — |
+| баг/підтримка | 0 | — |
+| питання/консультація | 0 | — |
+| поза скоупом | 0 | — |
 
 ### За пріоритетом
 
 | Значення | Кількість | Частка |
 |---|---:|---:|
-| low | 6 | 50% |
-| medium | 4 | 33% |
-| high | 2 | 17% |
+| low | 0 | — |
+| medium | 0 | — |
+| high | 0 | — |
 
 ### За відділом
 
 | Значення | Кількість | Частка |
 |---|---:|---:|
-| маркетинг | 0 | 0% |
-| продажі | 1 | 8% |
-| аналітика | 0 | 0% |
-| PM | 0 | 0% |
-| HR | 0 | 0% |
-| фінанси/бухгалтерія | 1 | 8% |
-| контент | 0 | 0% |
-| SMM | 0 | 0% |
-| підтримка | 0 | 0% |
-| інше | 0 | 0% |
-| не визначено | 10 | 83% |
+| маркетинг | 0 | — |
+| продажі | 0 | — |
+| аналітика | 0 | — |
+| PM | 0 | — |
+| HR | 0 | — |
+| фінанси/бухгалтерія | 0 | — |
+| контент | 0 | — |
+| SMM | 0 | — |
+| підтримка | 0 | — |
+| інше | 0 | — |
+| не визначено | 0 | — |
 
-## Потребують уточнення (6)
+## Потребують уточнення (0)
 
 Ці запити не можна брати в роботу як є.
 
-| ID | Канал | Суть | Що спитати | Впевненість |
-|---|---|---|---|---:|
-| REQ-001 | Slack | Запит на автоматизацію щотижневого звіту по Google Ads, який зараз заповнюється вручну через CSV в таблицю. | В яку саме таблицю (Google Sheets чи іншу) потрібно імпортувати дані?<br>Які саме основні метрики та розрізи по кампаніях мають бути у звіті?<br>Чи є готовий шаблон таблиці, куди потрібно вставляти дані? | 0.90 |
-| REQ-002 | Telegram | Запит на створення бота без жодних деталей щодо його функціоналу чи платформи. | Для якої платформи потрібен бот (Telegram, Slack тощо)?<br>Які завдання має виконувати цей бот?<br>З якими системами чи даними він має працювати? | 0.90 |
-| REQ-003 | Email | Запит на автоматичне створення саммарі та списку домовленостей з транскриптів дзвінків та їх імпорт у картки угод PlanFix. | З якої системи телефонії або де саме зберігаються транскрипти дзвінків?<br>За яким ідентифікатором (наприклад, номер телефону чи ID угоди) пов'язувати дзвінок із ка… | 0.90 |
-| REQ-005 | Telegram | Термінове вивантаження списку контрагентів із витратами понад 50к за травень для бухгалтерії. | З якої саме системи чи бази даних потрібно вивантажити витрати контрагентів?<br>У якому форматі (наприклад, Excel, Google Sheets) потрібно надати фінальний список? | 0.90 |
-| REQ-011 | Telegram | Запит на створення таблиці без жодних деталей щодо її призначення та джерел даних. | Які саме дані мають бути в цій таблиці?<br>З яких джерел чи систем потрібно збирати інформацію?<br>Хто і для яких завдань буде використовувати цю таблицю? | 0.90 |
-| REQ-014 | Telegram | Пропозиція розглянути інструмент за посиланням для можливого створення аналога в майбутньому. | Які саме функції цього інструменту є найбільш корисними для нас?<br>Для яких саме завдань чи процесів планується використовувати цей інструмент? | 0.80 |
+_Немає — усі запити достатньо конкретні._
 
-## Високий пріоритет (2)
+## Високий пріоритет (0)
 
-| ID | Канал | Категорія | Суть |
-|---|---|---|---|
-| REQ-005 | Telegram | звіт/аналітика | Термінове вивантаження списку контрагентів із витратами понад 50к за травень для бухгалтерії. |
-| REQ-007 | Slack | баг/підтримка | Зламалася автоматизація парсингу інвойсів з Meta, через що з понеділка не опрацьовуються рахунки. |
+_Немає._
 
-## Не вдалося обробити (6)
+## Не вдалося обробити (18)
 
 | ID | Тип помилки | Спроб | Деталі |
 |---|---|---:|---|
+| REQ-001 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-002 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-003 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-004 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-005 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-006 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-007 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-008 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
 | REQ-009 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-010 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-011 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
 | REQ-012 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
 | REQ-013 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-014 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
 | REQ-015 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
+| REQ-016 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
 | REQ-017 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |
 | REQ-018 | transport | 3 | Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your curren… |

@@ -7,10 +7,14 @@ from dotenv import load_dotenv
 
 from .llm.base import LLMClient, PermanentLLMError
 
-# Pinned deliberately. Gemini aliases such as "gemini-flash-latest" move under
-# you, which is the last thing you want when the report is supposed to be
-# reproducible. Check availability with: python -m triage --list-models
-DEFAULT_GEMINI_MODEL = "gemini-3.5-flash"
+# Pinned deliberately: aliases such as "gemini-flash-latest" move under you,
+# which is the last thing you want when the report is meant to be reproducible.
+#
+# Chosen for its free-tier *daily* quota, not for capability. gemini-3.5-flash
+# gives 20 requests/day, which cannot finish an 18-row inbox with any retries
+# left over; the lite model's allowance can. On a paid key, prefer the larger
+# model — this is a free-tier constraint, not a quality judgement.
+DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 
 
 def _int_env(name: str, default: int) -> int:

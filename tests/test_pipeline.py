@@ -11,9 +11,15 @@ import json
 import pytest
 
 from triage.config import Settings
-from triage.llm.base import LLMClient, LLMResponse, PermanentLLMError, TransientLLMError
+from triage.llm.base import (
+    LLMClient,
+    LLMResponse,
+    PermanentLLMError,
+    QuotaExhaustedError,
+    TransientLLMError,
+)
 from triage.models import RawRequest
-from triage.pipeline import extract_json, triage_all, triage_one
+from triage.pipeline import RunGuard, extract_json, triage_all, triage_one
 
 VALID = json.dumps(
     {
@@ -165,18 +171,21 @@ async def test_timeout_is_treated_as_transient():
 
 
 async def test_every_row_produces_exactly_one_record_in_input_order():
-    requests = [request(rid=f"REQ-{i}") for i in range(6)]
+    # The prompt carries the request text, not the id, so the stub keys off text.
+    requests = [request(text=f"запит номер {i}", rid=f"REQ-{i}") for i in range(6)]
 
     class FlakyClient(ScriptedClient):
         async def generate_json(self, *, system, user):
             self.prompts.append(user)
-            if "REQ-3" in user or "REQ-4" in user:
+            if "номер 3" in user or "номер 4" in user:
                 raise PermanentLLMError("nope")
             return LLMResponse(text=VALID, model=self.model)
 
     records, stats = await triage_all(requests, FlakyClient(), SETTINGS)
     assert [r.id for r in records] == [r.id for r in requests]
     assert stats.total == 6 and stats.ok + stats.failed == 6
+    assert stats.ok == 4 and stats.failed == 2
+    assert [r.id for r in records if r.status == "failed"] == ["REQ-3", "REQ-4"]
 
 
 async def test_concurrency_is_bounded():
@@ -243,3 +252,50 @@ async def test_server_retry_hint_beats_our_backoff_curve(monkeypatch):
     assert record.status == "ok"
     # 11s hint (plus <=0.4s jitter), not the 1s the exponential curve would pick.
     assert 11.0 <= slept[0] <= 11.4
+
+
+async def test_exhausted_daily_quota_stops_the_whole_run():
+    """A per-day quota is a fact about the run, not about one row."""
+    requests = [request(text=f"запит номер {i}", rid=f"REQ-{i}") for i in range(8)]
+
+    class DeadKeyClient(ScriptedClient):
+        async def generate_json(self, *, system, user):
+            self.prompts.append(user)
+            raise QuotaExhaustedError("Daily free-tier quota exhausted")
+
+    client = DeadKeyClient()
+    records, stats = await triage_all(requests, client, SETTINGS)
+
+    assert len(records) == 8  # every row still produces a record
+    assert all(r.status == "failed" for r in records)
+    # One row discovers the problem; the rest must not re-pay for it. Without
+    # the guard this would be 8 rows x 3 attempts = 24 calls.
+    assert len(client.prompts) < 8
+    assert stats.aborted_reason is not None
+    aborted = [r for r in records if "run aborted" in (r.error.message if r.error else "")]
+    assert aborted, "later rows should be short-circuited, not retried"
+
+
+async def test_an_ordinary_permanent_error_does_not_abort_the_run():
+    """One malformed request must not take the batch down with it."""
+    requests = [request(text=f"запит номер {i}", rid=f"REQ-{i}") for i in range(4)]
+
+    class OneBadRowClient(ScriptedClient):
+        async def generate_json(self, *, system, user):
+            self.prompts.append(user)
+            if "номер 1" in user:
+                raise PermanentLLMError("that one request was malformed")
+            return LLMResponse(text=VALID, model=self.model)
+
+    records, stats = await triage_all(requests, OneBadRowClient(), SETTINGS)
+    assert stats.aborted_reason is None
+    assert sum(r.status == "ok" for r in records) == 3
+    assert [r.id for r in records if r.status == "failed"] == ["REQ-1"]
+
+
+def test_the_guard_keeps_the_first_cause():
+    guard = RunGuard()
+    assert not guard.tripped
+    guard.trip("quota exhausted")
+    guard.trip("something later and less useful")
+    assert guard.reason == "quota exhausted"

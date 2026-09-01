@@ -30,6 +30,16 @@ class PermanentLLMError(LLMError):
     """Not worth retrying: bad key, bad request, model not found."""
 
 
+class QuotaExhaustedError(PermanentLLMError):
+    """A per-day quota is gone. Not worth retrying, and not just for this row.
+
+    Providers report daily and per-minute exhaustion through the same 429 with
+    the same short ``retryDelay``. Treating them alike is expensive: obeying a
+    "retry in 59s" hint on a quota that resets tomorrow turned one dead run into
+    25 minutes of grinding through every remaining row.
+    """
+
+
 @dataclass(slots=True)
 class LLMResponse:
     text: str

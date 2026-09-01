@@ -12,12 +12,44 @@ import re
 from google import genai
 from google.genai import errors, types
 
-from .base import LLMClient, LLMResponse, PermanentLLMError, TransientLLMError
+from .base import (
+    LLMClient,
+    LLMResponse,
+    PermanentLLMError,
+    QuotaExhaustedError,
+    TransientLLMError,
+)
 from .schema import TRIAGE_RESPONSE_SCHEMA
 
 logger = logging.getLogger(__name__)
 
 _RETRY_HINT = re.compile(r"retry in ([\d.]+)s", re.I)
+
+
+def _quota_violations(exc: errors.APIError) -> list[dict]:
+    """Pull the QuotaFailure violations out of a 429, if the provider sent any."""
+    for entry in _error_details(exc):
+        if entry.get("@type", "").endswith("QuotaFailure"):
+            violations = entry.get("violations")
+            return [v for v in violations if isinstance(v, dict)] if violations else []
+    return []
+
+
+def _is_daily_quota(exc: errors.APIError) -> bool:
+    """True when the exhausted quota is a per-day one, which no wait will fix."""
+    return any(
+        "perday" in str(v.get("quotaId", "")).casefold() for v in _quota_violations(exc)
+    )
+
+
+def _error_details(exc: errors.APIError) -> list[dict]:
+    details = getattr(exc, "details", None)
+    entries: list = []
+    if isinstance(details, dict):
+        entries = details.get("error", {}).get("details", []) or []
+    elif isinstance(details, list):
+        entries = details
+    return [e for e in entries if isinstance(e, dict)]
 
 
 def _retry_after(exc: errors.APIError) -> float | None:
@@ -26,15 +58,7 @@ def _retry_after(exc: errors.APIError) -> float | None:
     Gemini returns it twice: as a structured ``RetryInfo`` detail and as prose
     in the message. Check the structured form first, fall back to the prose.
     """
-    details = getattr(exc, "details", None)
-    entries: list = []
-    if isinstance(details, dict):
-        entries = details.get("error", {}).get("details", []) or []
-    elif isinstance(details, list):
-        entries = details
-    for entry in entries:
-        if not isinstance(entry, dict):
-            continue
+    for entry in _error_details(exc):
         if entry.get("@type", "").endswith("RetryInfo"):
             raw = str(entry.get("retryDelay", "")).rstrip("s")
             try:
@@ -99,6 +123,16 @@ class GeminiClient(LLMClient):
             )
         except errors.ClientError as exc:
             code = getattr(exc, "code", None)
+            if code == 429 and _is_daily_quota(exc):
+                limits = ", ".join(
+                    f"{v.get('quotaValue', '?')} req/day"
+                    for v in _quota_violations(exc)
+                ) or "unknown"
+                raise QuotaExhaustedError(
+                    f"Daily free-tier quota exhausted for {self.model} ({limits}). "
+                    "It resets on the provider's schedule, not in 59 seconds — "
+                    "switch GEMINI_MODEL or wait."
+                ) from exc
             if code in RETRYABLE_CLIENT_CODES:
                 raise TransientLLMError(
                     f"Gemini rate limited or busy ({code}): {exc}",

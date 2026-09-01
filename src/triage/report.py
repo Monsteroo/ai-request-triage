@@ -57,6 +57,7 @@ def build_output_document(
             "output_tokens": stats.output_tokens,
             "wall_time_s": round(stats.wall_time_s, 2),
             "rules_fired": stats.rules_fired,
+            "aborted_reason": stats.aborted_reason,
         },
         "requests": [record.dump() for record in records],
     }
@@ -104,6 +105,17 @@ def build_report(
         f" ({stats.prompt_tokens:,} вхідних + {stats.output_tokens:,} вихідних)",
         f"- **Час виконання:** {stats.wall_time_s:.1f} с",
         "",
+    ]
+
+    if stats.aborted_reason:
+        lines += [
+            "> **Прогін зупинено достроково.** Решта запитів позначені як невдалі "
+            "без спроби обробки.",
+            f"> Причина: {_escape(stats.aborted_reason, 400)}",
+            "",
+        ]
+
+    lines += [
         "## Агрегати",
         "",
     ]
