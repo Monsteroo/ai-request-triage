@@ -14,7 +14,16 @@ class LLMError(Exception):
 
 
 class TransientLLMError(LLMError):
-    """Worth retrying: rate limits, 5xx, timeouts, truncated responses."""
+    """Worth retrying: rate limits, 5xx, timeouts, truncated responses.
+
+    ``retry_after_s`` carries the provider's own advice when it gives any. A
+    server that says "retry in 10s" knows more about its quota window than our
+    exponential backoff curve does, so we believe it.
+    """
+
+    def __init__(self, message: str, retry_after_s: float | None = None) -> None:
+        super().__init__(message)
+        self.retry_after_s = retry_after_s
 
 
 class PermanentLLMError(LLMError):

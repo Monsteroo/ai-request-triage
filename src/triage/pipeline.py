@@ -23,6 +23,7 @@ import logging
 import random
 import re
 import time
+from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -38,7 +39,41 @@ logger = logging.getLogger(__name__)
 
 _FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.I)
 
-MAX_BACKOFF_S = 8.0
+MAX_BACKOFF_S = 30.0
+
+
+class RateLimiter:
+    """Client-side sliding-window limiter on calls started per minute.
+
+    Backoff alone is not enough against a hard quota. Retrying *after* a 429 is
+    reactive: on a free tier that allows 5 requests/minute, a batch of 18 spends
+    its whole retry budget discovering the same limit over and over. Pacing the
+    calls up front turns "12 of 18 failed" into "all 18 succeeded, slowly".
+
+    A window rather than a fixed delay because the quota itself is a window: a
+    burst of 5 followed by a wait is allowed, and is faster than 5 evenly
+    spaced calls.
+    """
+
+    def __init__(self, per_minute: int) -> None:
+        self._per_minute = per_minute
+        self._starts: deque[float] = deque()
+        self._lock = asyncio.Lock()
+
+    async def acquire(self) -> None:
+        if self._per_minute <= 0:  # 0 disables pacing entirely
+            return
+        while True:
+            async with self._lock:
+                now = time.monotonic()
+                while self._starts and now - self._starts[0] >= 60.0:
+                    self._starts.popleft()
+                if len(self._starts) < self._per_minute:
+                    self._starts.append(now)
+                    return
+                wait = 60.0 - (now - self._starts[0])
+            # Sleep outside the lock so other workers can still drain the window.
+            await asyncio.sleep(max(wait, 0.0) + 0.05)
 
 
 @dataclass
@@ -81,20 +116,28 @@ def _format_validation_error(exc: ValidationError) -> str:
     )
 
 
-async def _sleep_backoff(attempt: int, base_s: float) -> None:
-    """Exponential backoff with jitter.
+async def _sleep_backoff(attempt: int, base_s: float, retry_after_s: float | None = None) -> None:
+    """Wait before the next attempt.
 
-    The jitter matters when a whole batch trips the same rate limit: without it
-    every worker wakes up at the same instant and trips it again.
+    Prefers the provider's own ``retry_after`` hint over our guess — it is
+    derived from the actual quota window rather than a curve we invented. Jitter
+    is added in both cases: without it a whole batch wakes at the same instant
+    and trips the same limit together.
     """
     if base_s <= 0:
         return
-    delay = min(MAX_BACKOFF_S, base_s * 2.0 ** (attempt - 1)) + random.uniform(0, 0.4 * base_s)
-    await asyncio.sleep(delay)
+    if retry_after_s is not None:
+        delay = min(MAX_BACKOFF_S, retry_after_s)
+    else:
+        delay = min(MAX_BACKOFF_S, base_s * 2.0 ** (attempt - 1))
+    await asyncio.sleep(delay + random.uniform(0, 0.4 * base_s))
 
 
 async def triage_one(
-    request: RawRequest, client: LLMClient, settings: Settings
+    request: RawRequest,
+    client: LLMClient,
+    settings: Settings,
+    limiter: RateLimiter | None = None,
 ) -> tuple[ProcessedRequest, int]:
     """Triage a single request. Returns the record and the number of LLM calls made."""
     started = time.perf_counter()
@@ -132,6 +175,8 @@ async def triage_one(
         )
 
         try:
+            if limiter is not None:
+                await limiter.acquire()
             async with asyncio.timeout(settings.request_timeout_s):
                 response = await client.generate_json(system=SYSTEM_PROMPT, user=user_prompt)
             calls += 1
@@ -144,9 +189,13 @@ async def triage_one(
         except (TransientLLMError, TimeoutError, asyncio.TimeoutError) as exc:
             calls += 1
             last_kind, last_error = "transport", str(exc) or "request timed out"
-            logger.warning("%s: attempt %d failed (%s)", request.id, attempt, last_error)
+            logger.warning(
+                "%s: attempt %d failed (%s)", request.id, attempt, last_error[:160]
+            )
             if attempt < settings.max_attempts:
-                await _sleep_backoff(attempt, settings.backoff_base_s)
+                await _sleep_backoff(
+                    attempt, settings.backoff_base_s, getattr(exc, "retry_after_s", None)
+                )
             continue
 
         meta.model = response.model
@@ -202,11 +251,12 @@ async def triage_all(
         return [], stats
 
     semaphore = asyncio.Semaphore(max(1, settings.max_concurrency))
+    limiter = RateLimiter(settings.requests_per_minute)
     started = time.perf_counter()
 
     async def worker(request: RawRequest) -> ProcessedRequest:
         async with semaphore:
-            record, calls = await triage_one(request, client, settings)
+            record, calls = await triage_one(request, client, settings, limiter)
         stats.llm_calls += calls
         if on_done is not None:
             on_done(record)

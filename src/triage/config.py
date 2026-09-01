@@ -44,9 +44,11 @@ class Settings:
     gemini_api_key: str = ""
     gemini_model: str = DEFAULT_GEMINI_MODEL
     max_concurrency: int = 4
-    max_attempts: int = 3
+    max_attempts: int = 4
     request_timeout_s: int = 60
     backoff_base_s: float = 1.0
+    # Gemini's free tier allows 5 requests/minute/model. 0 disables pacing.
+    requests_per_minute: int = 5
     thinking_budget: int | None = 0
 
     @classmethod
@@ -57,9 +59,10 @@ class Settings:
             gemini_api_key=os.getenv("GEMINI_API_KEY", "").strip(),
             gemini_model=os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL).strip(),
             max_concurrency=_int_env("MAX_CONCURRENCY", 4),
-            max_attempts=_int_env("MAX_ATTEMPTS", 3),
+            max_attempts=_int_env("MAX_ATTEMPTS", 4),
             request_timeout_s=_int_env("REQUEST_TIMEOUT_S", 60),
             backoff_base_s=float(os.getenv("BACKOFF_BASE_S", "1.0")),
+            requests_per_minute=_int_env("REQUESTS_PER_MINUTE", 5),
             thinking_budget=_thinking_budget_env(),
         )
 

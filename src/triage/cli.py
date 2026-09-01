@@ -45,6 +45,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", help="override the model id")
     parser.add_argument("--concurrency", type=int, help="max in-flight LLM calls")
     parser.add_argument(
+        "--rpm",
+        type=int,
+        help="calls per minute to pace at; 0 disables pacing (free tier allows 5)",
+    )
+    parser.add_argument(
         "--limit", type=int, help="process only the first N rows (handy for a cheap smoke test)"
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="debug logging")
@@ -60,6 +65,8 @@ def _resolve_settings(args: argparse.Namespace) -> Settings:
         overrides["gemini_model"] = args.model
     if args.concurrency:
         overrides["max_concurrency"] = args.concurrency
+    if args.rpm is not None:
+        overrides["requests_per_minute"] = args.rpm
     return dataclasses.replace(settings, **overrides) if overrides else settings
 
 
@@ -74,11 +81,12 @@ async def run(args: argparse.Namespace) -> int:
 
     client = build_client(settings)
     logger.info(
-        "Triaging %d request(s) via %s/%s, concurrency=%d",
+        "Triaging %d request(s) via %s/%s, concurrency=%d, rpm=%s",
         len(requests),
         settings.provider,
         client.model,
         settings.max_concurrency,
+        settings.requests_per_minute or "unlimited",
     )
 
     done = 0

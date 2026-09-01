@@ -36,7 +36,12 @@ BAD_ENUM = VALID.replace("звіт/аналітика", "щось вигадан
 # backoff_base_s=0 keeps the suite fast; the backoff itself is exercised in
 # test_backoff_is_bounded_and_jittered below.
 SETTINGS = Settings(
-    provider="fake", max_attempts=3, request_timeout_s=5, max_concurrency=2, backoff_base_s=0
+    provider="fake",
+    max_attempts=3,
+    request_timeout_s=5,
+    max_concurrency=2,
+    backoff_base_s=0,
+    requests_per_minute=0,  # pacing is exercised separately, in test_rate_limiter.py
 )
 
 
@@ -147,7 +152,13 @@ async def test_timeout_is_treated_as_transient():
             return await super().generate_json(system=system, user=user)
 
     record, _ = await triage_one(
-        request(), SlowClient(VALID), Settings(provider="fake", max_attempts=1, request_timeout_s=0, backoff_base_s=0)
+        request(), SlowClient(VALID), Settings(
+            provider="fake",
+            max_attempts=1,
+            request_timeout_s=0,
+            backoff_base_s=0,
+            requests_per_minute=0,
+        )
     )
     assert record.status == "failed" and record.error is not None
     assert record.error.kind == "transport"
@@ -205,10 +216,30 @@ async def test_backoff_grows_and_stays_bounded(monkeypatch):
         slept.append(seconds)
 
     monkeypatch.setattr("triage.pipeline.asyncio.sleep", fake_sleep)
-    settings = Settings(provider="fake", max_attempts=4, backoff_base_s=1.0)
+    settings = Settings(
+        provider="fake", max_attempts=4, backoff_base_s=1.0, requests_per_minute=0
+    )
     client = ScriptedClient(*[TransientLLMError("429")] * 4)
     await triage_one(request(), client, settings)
 
     assert len(slept) == 3  # no sleep after the final attempt
     assert slept == sorted(slept)  # strictly growing
-    assert all(d <= 8.4 for d in slept)  # capped
+    assert all(d <= 30.4 for d in slept)  # capped
+
+
+async def test_server_retry_hint_beats_our_backoff_curve(monkeypatch):
+    slept: list[float] = []
+
+    async def fake_sleep(seconds):
+        slept.append(seconds)
+
+    monkeypatch.setattr("triage.pipeline.asyncio.sleep", fake_sleep)
+    settings = Settings(
+        provider="fake", max_attempts=2, backoff_base_s=1.0, requests_per_minute=0
+    )
+    client = ScriptedClient(TransientLLMError("429 quota", retry_after_s=11.0), VALID)
+    record, _ = await triage_one(request(), client, settings)
+
+    assert record.status == "ok"
+    # 11s hint (plus <=0.4s jitter), not the 1s the exponential curve would pick.
+    assert 11.0 <= slept[0] <= 11.4

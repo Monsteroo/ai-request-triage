@@ -7,6 +7,7 @@ non-determinism section of the README for why "mostly" is the honest word.
 """
 
 import logging
+import re
 
 from google import genai
 from google.genai import errors, types
@@ -15,6 +16,33 @@ from .base import LLMClient, LLMResponse, PermanentLLMError, TransientLLMError
 from .schema import TRIAGE_RESPONSE_SCHEMA
 
 logger = logging.getLogger(__name__)
+
+_RETRY_HINT = re.compile(r"retry in ([\d.]+)s", re.I)
+
+
+def _retry_after(exc: errors.APIError) -> float | None:
+    """Dig the server's suggested wait out of a quota error.
+
+    Gemini returns it twice: as a structured ``RetryInfo`` detail and as prose
+    in the message. Check the structured form first, fall back to the prose.
+    """
+    details = getattr(exc, "details", None)
+    entries: list = []
+    if isinstance(details, dict):
+        entries = details.get("error", {}).get("details", []) or []
+    elif isinstance(details, list):
+        entries = details
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("@type", "").endswith("RetryInfo"):
+            raw = str(entry.get("retryDelay", "")).rstrip("s")
+            try:
+                return float(raw)
+            except ValueError:
+                pass
+    match = _RETRY_HINT.search(str(exc))
+    return float(match.group(1)) if match else None
 
 # Rate limiting is the one 4xx that is worth waiting out.
 RETRYABLE_CLIENT_CODES = {408, 409, 429}
@@ -72,10 +100,15 @@ class GeminiClient(LLMClient):
         except errors.ClientError as exc:
             code = getattr(exc, "code", None)
             if code in RETRYABLE_CLIENT_CODES:
-                raise TransientLLMError(f"Gemini rate limited or busy ({code}): {exc}") from exc
+                raise TransientLLMError(
+                    f"Gemini rate limited or busy ({code}): {exc}",
+                    retry_after_s=_retry_after(exc),
+                ) from exc
             raise PermanentLLMError(f"Gemini rejected the request ({code}): {exc}") from exc
         except errors.ServerError as exc:
-            raise TransientLLMError(f"Gemini server error: {exc}") from exc
+            raise TransientLLMError(
+                f"Gemini server error: {exc}", retry_after_s=_retry_after(exc)
+            ) from exc
         except errors.APIError as exc:
             raise TransientLLMError(f"Gemini API error: {exc}") from exc
         except Exception as exc:  # network stack, timeouts, DNS
