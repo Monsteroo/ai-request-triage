@@ -73,7 +73,7 @@ def _resolve_settings(args: argparse.Namespace) -> Settings:
 async def run(args: argparse.Namespace) -> int:
     settings = _resolve_settings(args)
     requests = read_requests(args.input)
-    if args.limit:
+    if args.limit is not None:  # `is not None`, not truthiness: --limit 0 must mean zero rows
         requests = requests[: args.limit]
     if not requests:
         logger.error("No requests found in %s", args.input)

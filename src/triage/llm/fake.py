@@ -52,6 +52,7 @@ class FakeClient(LLMClient):
     """
 
     name = "fake"
+    needs_pacing = False  # no network call, no quota to protect
 
     def __init__(self, model: str = "fake-1", fail_for: dict[str, str] | None = None) -> None:
         self.model = model

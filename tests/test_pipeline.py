@@ -10,6 +10,7 @@ import json
 
 import pytest
 
+import triage.pipeline as pipeline_module
 from triage.config import Settings
 from triage.llm.base import (
     LLMClient,
@@ -18,6 +19,7 @@ from triage.llm.base import (
     QuotaExhaustedError,
     TransientLLMError,
 )
+from triage.llm.fake import FakeClient
 from triage.models import RawRequest
 from triage.pipeline import RunGuard, extract_json, triage_all, triage_one
 
@@ -299,3 +301,163 @@ def test_the_guard_keeps_the_first_cause():
     guard.trip("quota exhausted")
     guard.trip("something later and less useful")
     assert guard.reason == "quota exhausted"
+
+
+# --- "never lose a row" — the three layers of the safety net -----------------
+#
+# triage_one must never raise (row-level net); a progress callback's own bugs
+# must not downgrade an already-successful result (isolation); and even a bug
+# in triage_one itself must not cost the *other* rows their results
+# (gather-level net). Each test isolates one layer.
+
+
+async def test_unexpected_exception_does_not_lose_the_row():
+    """A bug that is not one of the four typed LLMError cases — a real one
+    turned out to be response.text raising inside the SDK — must still
+    produce a status='failed' record instead of escaping triage_one."""
+
+    class ExplodingClient(ScriptedClient):
+        async def generate_json(self, *, system, user):
+            raise RuntimeError("e.g. a bug in response parsing")
+
+    record, calls = await triage_one(request(), ExplodingClient(), SETTINGS)
+
+    assert record.status == "failed"
+    assert record.error is not None and record.error.kind == "unknown"
+    assert "bug in response parsing" in record.error.message
+
+
+async def test_on_done_callback_failure_does_not_lose_the_record():
+    """The progress callback is a side effect, not the result. A bug in it
+    must not downgrade an already-successful triage to a synthetic failure."""
+    requests = [request(text=f"запит номер {i}", rid=f"REQ-{i}") for i in range(4)]
+
+    def exploding_on_done(record):
+        if record.id == "REQ-2":
+            raise RuntimeError("bug in a progress callback")
+
+    records, _ = await triage_all(requests, ScriptedClient(), SETTINGS, on_done=exploding_on_done)
+
+    assert [r.id for r in records] == [r.id for r in requests]
+    assert all(r.status == "ok" for r in records)  # the real triage result survives
+
+
+async def test_triage_all_survives_a_completely_unexpected_worker_failure(monkeypatch):
+    """Last-resort net: even if triage_one itself explodes for one row — not
+    just the LLM call inside it — the run must not lose the other rows with
+    it. Before asyncio.gather got return_exceptions=True, this destroyed
+    every result: reproduced with a client raising RuntimeError, 0 records
+    returned for a batch of 5."""
+    original_triage_one = pipeline_module.triage_one
+
+    async def flaky_triage_one(request, client, settings, limiter=None, guard=None):
+        if request.id == "REQ-2":
+            raise RuntimeError("hypothetical bug elsewhere in triage_one")
+        return await original_triage_one(request, client, settings, limiter, guard)
+
+    monkeypatch.setattr(pipeline_module, "triage_one", flaky_triage_one)
+
+    requests = [request(rid=f"REQ-{i}") for i in range(4)]
+    records, _ = await triage_all(requests, ScriptedClient(), SETTINGS)
+
+    assert [r.id for r in records] == [r.id for r in requests]
+    assert sum(r.status == "ok" for r in records) == 3
+    broken = next(r for r in records if r.id == "REQ-2")
+    assert broken.status == "failed"
+    assert broken.error is not None and broken.error.kind == "unknown"
+
+
+# --- the offline stub must never be paced like a quota-bound provider --------
+
+
+def test_fake_client_defaults_to_not_needing_pacing():
+    assert FakeClient().needs_pacing is False
+
+
+def test_llm_client_base_defaults_to_needing_pacing():
+    assert LLMClient.needs_pacing is True
+
+
+async def test_fake_provider_is_never_paced_by_triage_all(monkeypatch):
+    """FakeClient makes no network call and has no quota to protect. Pacing it
+    anyway turned `--provider fake` — the quick start README offers for trying
+    the repo without an API key — into a multi-minute wait for stub output.
+
+    Both time.monotonic and asyncio.sleep are mocked (as in test_rate_limiter.py):
+    mocking only sleep while leaving the clock real means a real RateLimiter
+    would spin — asyncio.sleep resolving instantly without wall-clock time
+    actually advancing — rather than failing cleanly. That spin is exactly what
+    happened re-running this test against the pre-fix pipeline while checking
+    this test actually catches the regression: a bounded pytest run turned into
+    a busy loop that had to be killed, instead of a fast, clear assertion
+    failure. Faking the clock too keeps a reintroduced bug a quick failure.
+    """
+    now = 1000.0
+
+    def fake_monotonic():
+        return now
+
+    async def fake_sleep(seconds):
+        nonlocal now
+        now += seconds
+
+    monkeypatch.setattr("triage.pipeline.time.monotonic", fake_monotonic)
+    monkeypatch.setattr("triage.pipeline.asyncio.sleep", fake_sleep)
+    settings = Settings(provider="fake", max_attempts=1, requests_per_minute=5)
+    requests = [request(rid=f"REQ-{i}") for i in range(10)]
+
+    await triage_all(requests, FakeClient(), settings)
+
+    assert now == 1000.0  # no pacing delay of any kind — the fake clock never moved
+
+
+# --- RunGuard must be honoured even after a worker was queued ---------------
+
+
+async def test_guard_tripped_during_the_limiter_wait_prevents_the_call():
+    """A worker queued behind the rate limiter must not fire its call if the
+    guard tripped — because another row's response arrived — while it waited."""
+
+    class GuardTrippingLimiter:
+        """Stands in for RateLimiter: tripping the guard as a side effect of
+        acquire() simulates another worker's row exhausting the quota while
+        this one was still queued behind it."""
+
+        def __init__(self, guard: RunGuard) -> None:
+            self._guard = guard
+
+        async def acquire(self) -> None:
+            self._guard.trip("tripped while this worker was queued")
+
+    guard = RunGuard()
+    limiter = GuardTrippingLimiter(guard)
+    client = ScriptedClient(VALID)
+
+    record, calls = await triage_one(request(), client, SETTINGS, limiter, guard)
+
+    assert calls == 0  # never reached the client
+    assert client.prompts == []
+    assert record.status == "failed"
+    assert record.error is not None and "run aborted" in record.error.message
+
+
+# --- BACKOFF_BASE_S=0 must disable only our own guessed curve ---------------
+
+
+async def test_backoff_base_zero_still_honours_the_servers_retry_hint(monkeypatch):
+    """BACKOFF_BASE_S=0 disables our own guessed exponential curve. It must
+    not also discard an explicit "retry in 10s" the provider actually sent —
+    that combination used to retry instantly into a 429 that had just asked
+    for ten seconds of quiet."""
+    slept: list[float] = []
+
+    async def fake_sleep(seconds):
+        slept.append(seconds)
+
+    monkeypatch.setattr("triage.pipeline.asyncio.sleep", fake_sleep)
+    client = ScriptedClient(TransientLLMError("429 quota", retry_after_s=10.0), VALID)
+
+    record, _ = await triage_one(request(), client, SETTINGS)  # SETTINGS.backoff_base_s == 0
+
+    assert record.status == "ok"
+    assert slept and 10.0 <= slept[0] <= 10.4  # the hint was honoured, not skipped

@@ -27,6 +27,16 @@ def _int_env(name: str, default: int) -> int:
         raise PermanentLLMError(f"{name} must be an integer, got {raw!r}") from None
 
 
+def _float_env(name: str, default: float) -> float:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        raise PermanentLLMError(f"{name} must be a number, got {raw!r}") from None
+
+
 def _thinking_budget_env() -> int | None:
     """0 disables thinking, "auto" hands the decision to the model, N pins a budget."""
     raw = os.getenv("GEMINI_THINKING_BUDGET", "").strip().lower()
@@ -65,7 +75,7 @@ class Settings:
             max_concurrency=_int_env("MAX_CONCURRENCY", 4),
             max_attempts=_int_env("MAX_ATTEMPTS", 4),
             request_timeout_s=_int_env("REQUEST_TIMEOUT_S", 60),
-            backoff_base_s=float(os.getenv("BACKOFF_BASE_S", "1.0")),
+            backoff_base_s=_float_env("BACKOFF_BASE_S", 1.0),
             requests_per_minute=_int_env("REQUESTS_PER_MINUTE", 5),
             thinking_budget=_thinking_budget_env(),
         )

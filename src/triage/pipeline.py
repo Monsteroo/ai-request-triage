@@ -154,18 +154,21 @@ def _format_validation_error(exc: ValidationError) -> str:
 async def _sleep_backoff(attempt: int, base_s: float, retry_after_s: float | None = None) -> None:
     """Wait before the next attempt.
 
-    Prefers the provider's own ``retry_after`` hint over our guess — it is
-    derived from the actual quota window rather than a curve we invented. Jitter
-    is added in both cases: without it a whole batch wakes at the same instant
-    and trips the same limit together.
+    The provider's own ``retry_after`` hint is honoured even when ``base_s``
+    disables our own guessed curve. ``base_s`` only controls the exponential
+    curve we invent when the provider gives no hint at all — it was never
+    meant to license ignoring an explicit "retry in Ns" from the server, and
+    treating it that way sent BACKOFF_BASE_S=0 instant-retrying straight into
+    a 429 that had just asked for a minute of quiet.
     """
-    if base_s <= 0:
-        return
     if retry_after_s is not None:
         delay = min(MAX_BACKOFF_S, retry_after_s)
+    elif base_s <= 0:
+        return
     else:
         delay = min(MAX_BACKOFF_S, base_s * 2.0 ** (attempt - 1))
-    await asyncio.sleep(delay + random.uniform(0, 0.4 * base_s))
+    jitter_span = base_s if base_s > 0 else 1.0
+    await asyncio.sleep(delay + random.uniform(0, 0.4 * jitter_span))
 
 
 async def triage_one(
@@ -175,7 +178,12 @@ async def triage_one(
     limiter: RateLimiter | None = None,
     guard: RunGuard | None = None,
 ) -> tuple[ProcessedRequest, int]:
-    """Triage a single request. Returns the record and the number of LLM calls made."""
+    """Triage a single request. Returns the record and the number of LLM calls made.
+
+    Never raises. Every path — including one we did not anticipate — ends in a
+    ``ProcessedRequest``, because that is the one guarantee the rest of the
+    pipeline is built on.
+    """
     started = time.perf_counter()
     meta = ProcessingMeta(model=client.model)
     calls = 0
@@ -202,85 +210,100 @@ async def triage_one(
     last_error = "no attempt completed"
     last_kind = "unknown"
 
-    for attempt in range(1, settings.max_attempts + 1):
-        if guard is not None and guard.tripped:
-            return finish_failed("transport", f"run aborted: {guard.reason}"), calls
-        meta.attempts = attempt
-        user_prompt = (
-            build_user_prompt(request)
-            if last_raw is None
-            else build_repair_prompt(request, last_raw, last_error)
-        )
+    try:
+        for attempt in range(1, settings.max_attempts + 1):
+            if guard is not None and guard.tripped:
+                return finish_failed("transport", f"run aborted: {guard.reason}"), calls
+            meta.attempts = attempt
+            user_prompt = (
+                build_user_prompt(request)
+                if last_raw is None
+                else build_repair_prompt(request, last_raw, last_error)
+            )
 
-        try:
-            if limiter is not None:
-                await limiter.acquire()
-            async with asyncio.timeout(settings.request_timeout_s):
-                response = await client.generate_json(system=SYSTEM_PROMPT, user=user_prompt)
-            calls += 1
-        except QuotaExhaustedError as exc:
-            # Not just this row's problem — stop the whole run.
-            calls += 1
-            if guard is not None:
-                guard.trip(str(exc))
-            return finish_failed("transport", str(exc)), calls
-        except PermanentLLMError as exc:
-            # The request was sent and rejected, so it counts against quota even
-            # though retrying it cannot help.
-            calls += 1
-            logger.error("%s: unrecoverable provider error: %s", request.id, exc)
-            return finish_failed("transport", str(exc)), calls
-        except (TransientLLMError, TimeoutError) as exc:
-            calls += 1
-            last_kind, last_error = "transport", str(exc) or "request timed out"
+            try:
+                if limiter is not None:
+                    await limiter.acquire()
+                # Re-check: a worker can queue behind the limiter for a full
+                # interval, and another worker's row can trip the guard during
+                # that wait. Without this second check the call fires anyway —
+                # exactly the waste RunGuard exists to prevent.
+                if guard is not None and guard.tripped:
+                    return finish_failed("transport", f"run aborted: {guard.reason}"), calls
+                async with asyncio.timeout(settings.request_timeout_s):
+                    response = await client.generate_json(system=SYSTEM_PROMPT, user=user_prompt)
+                calls += 1
+            except QuotaExhaustedError as exc:
+                # Not just this row's problem — stop the whole run.
+                calls += 1
+                if guard is not None:
+                    guard.trip(str(exc))
+                return finish_failed("transport", str(exc)), calls
+            except PermanentLLMError as exc:
+                # The request was sent and rejected, so it counts against quota even
+                # though retrying it cannot help.
+                calls += 1
+                logger.error("%s: unrecoverable provider error: %s", request.id, exc)
+                return finish_failed("transport", str(exc)), calls
+            except (TransientLLMError, TimeoutError) as exc:
+                calls += 1
+                last_kind, last_error = "transport", str(exc) or "request timed out"
+                logger.warning(
+                    "%s: attempt %d failed (%s)", request.id, attempt, last_error[:160]
+                )
+                if attempt < settings.max_attempts:
+                    retry_after = getattr(exc, "retry_after_s", None)
+                    if limiter is not None and retry_after is not None:
+                        # Hand the wait to the limiter so every worker observes it,
+                        # then only jitter locally — otherwise we would wait twice.
+                        limiter.pause_for(retry_after)
+                        await _sleep_backoff(attempt, settings.backoff_base_s)
+                    else:
+                        await _sleep_backoff(attempt, settings.backoff_base_s, retry_after)
+                continue
+
+            meta.model = response.model
+            meta.prompt_tokens = (meta.prompt_tokens or 0) + (response.prompt_tokens or 0)
+            meta.output_tokens = (meta.output_tokens or 0) + (response.output_tokens or 0)
+
+            try:
+                payload = json.loads(extract_json(response.text))
+                triage = TriageFields.model_validate(payload)
+            except json.JSONDecodeError as exc:
+                last_kind, last_raw, last_error = "validation", response.text, f"invalid JSON: {exc}"
+            except ValidationError as exc:
+                last_kind, last_raw = "validation", response.text
+                last_error = _format_validation_error(exc)
+            else:
+                triage, fired = apply_business_rules(triage)
+                meta.applied_rules = fired
+                meta.latency_ms = int((time.perf_counter() - started) * 1000)
+                return (
+                    ProcessedRequest(
+                        id=request.id,
+                        channel=request.channel,
+                        timestamp=request.timestamp,
+                        raw_text=request.raw_text,
+                        status="ok",
+                        triage=triage,
+                        meta=meta,
+                    ),
+                    calls,
+                )
+
             logger.warning(
-                "%s: attempt %d failed (%s)", request.id, attempt, last_error[:160]
-            )
-            if attempt < settings.max_attempts:
-                retry_after = getattr(exc, "retry_after_s", None)
-                if limiter is not None and retry_after is not None:
-                    # Hand the wait to the limiter so every worker observes it,
-                    # then only jitter locally — otherwise we would wait twice.
-                    limiter.pause_for(retry_after)
-                    await _sleep_backoff(attempt, settings.backoff_base_s)
-                else:
-                    await _sleep_backoff(attempt, settings.backoff_base_s, retry_after)
-            continue
-
-        meta.model = response.model
-        meta.prompt_tokens = (meta.prompt_tokens or 0) + (response.prompt_tokens or 0)
-        meta.output_tokens = (meta.output_tokens or 0) + (response.output_tokens or 0)
-
-        try:
-            payload = json.loads(extract_json(response.text))
-            triage = TriageFields.model_validate(payload)
-        except json.JSONDecodeError as exc:
-            last_kind, last_raw, last_error = "validation", response.text, f"invalid JSON: {exc}"
-        except ValidationError as exc:
-            last_kind, last_raw = "validation", response.text
-            last_error = _format_validation_error(exc)
-        else:
-            triage, fired = apply_business_rules(triage)
-            meta.applied_rules = fired
-            meta.latency_ms = int((time.perf_counter() - started) * 1000)
-            return (
-                ProcessedRequest(
-                    id=request.id,
-                    channel=request.channel,
-                    timestamp=request.timestamp,
-                    raw_text=request.raw_text,
-                    status="ok",
-                    triage=triage,
-                    meta=meta,
-                ),
-                calls,
+                "%s: attempt %d produced invalid output (%s)", request.id, attempt, last_error
             )
 
-        logger.warning(
-            "%s: attempt %d produced invalid output (%s)", request.id, attempt, last_error
-        )
-
-    return finish_failed(last_kind, last_error, last_raw), calls
+        return finish_failed(last_kind, last_error, last_raw), calls
+    except Exception as exc:
+        # Last-resort net: the module's contract is that every input row
+        # produces exactly one output record, and a bug we did not
+        # anticipate here (a malformed SDK response, a business-rule crash,
+        # anything) must not take the row down with it — or, one level up
+        # in triage_all's bare gather, the entire run down with it.
+        logger.exception("%s: unexpected failure during triage", request.id)
+        return finish_failed("unknown", f"unexpected error: {exc}"), calls
 
 
 async def triage_all(
@@ -300,7 +323,10 @@ async def triage_all(
         return [], stats
 
     semaphore = asyncio.Semaphore(max(1, settings.max_concurrency))
-    limiter = RateLimiter(settings.requests_per_minute)
+    # The offline stub makes no network call and has no quota to protect —
+    # pacing it anyway turned the "try it without a key" quick start into a
+    # multi-minute wait for stub output.
+    limiter = RateLimiter(settings.requests_per_minute if client.needs_pacing else 0)
     guard = RunGuard()
     started = time.perf_counter()
 
@@ -309,10 +335,36 @@ async def triage_all(
             record, calls = await triage_one(request, client, settings, limiter, guard)
         stats.llm_calls += calls
         if on_done is not None:
-            on_done(record)
+            try:
+                on_done(record)
+            except Exception:
+                # A progress callback is a side effect, not the result. A bug in
+                # it must not cost the row its already-computed record.
+                logger.exception("%s: on_done callback raised; keeping the record anyway", record.id)
         return record
 
-    records = await asyncio.gather(*(worker(r) for r in requests))
+    # return_exceptions=True plus the reconciliation below is the outermost
+    # layer of the "never lose a row" guarantee: triage_one already never
+    # raises, but a bare gather would still let a bug anywhere else in worker
+    # (or a future change to it) take out every result instead of just one.
+    raw_results = await asyncio.gather(*(worker(r) for r in requests), return_exceptions=True)
+
+    records: list[ProcessedRequest] = []
+    for req, result in zip(requests, raw_results, strict=True):
+        if isinstance(result, BaseException):
+            logger.error("%s: worker task failed unexpectedly: %s", req.id, result)
+            records.append(
+                ProcessedRequest(
+                    id=req.id,
+                    channel=req.channel,
+                    timestamp=req.timestamp,
+                    raw_text=req.raw_text,
+                    status="failed",
+                    error=ErrorInfo(kind="unknown", message=f"worker task failed: {result}"),
+                )
+            )
+        else:
+            records.append(result)
 
     stats.wall_time_s = time.perf_counter() - started
     stats.aborted_reason = guard.reason

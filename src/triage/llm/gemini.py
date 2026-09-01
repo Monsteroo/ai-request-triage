@@ -14,6 +14,7 @@ from google.genai import errors, types
 
 from .base import (
     LLMClient,
+    LLMError,
     LLMResponse,
     PermanentLLMError,
     QuotaExhaustedError,
@@ -121,6 +122,14 @@ class GeminiClient(LLMClient):
             response = await self._client.aio.models.generate_content(
                 model=self.model, contents=user, config=config
             )
+            # Parsing the response can fail too — a candidate holding an
+            # unexpected shape can make the SDK's own `.text` property raise.
+            # That failure belongs inside this same typed-error boundary, not
+            # after it: anything escaping generate_json untyped defeats every
+            # caller's LLMError handling and, upstream, the pipeline's
+            # guarantee that a bad response never loses the row.
+            self._raise_on_bad_finish(response)
+            text = (response.text or "").strip()
         except errors.ClientError as exc:
             code = getattr(exc, "code", None)
             if code == 429 and _is_daily_quota(exc):
@@ -145,12 +154,14 @@ class GeminiClient(LLMClient):
             ) from exc
         except errors.APIError as exc:
             raise TransientLLMError(f"Gemini API error: {exc}") from exc
-        except Exception as exc:  # network stack, timeouts, DNS
+        except LLMError:
+            # Raised by _raise_on_bad_finish above (blocked / truncated
+            # generation) — already the right typed error, pass it through
+            # rather than re-wrapping it as a generic transport failure.
+            raise
+        except Exception as exc:  # network stack, timeouts, DNS, bad response shape
             raise TransientLLMError(f"Transport failure talking to Gemini: {exc}") from exc
 
-        self._raise_on_bad_finish(response)
-
-        text = (response.text or "").strip()
         if not text:
             raise TransientLLMError("Gemini returned an empty response body")
 

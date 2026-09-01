@@ -54,6 +54,12 @@ class LLMClient(ABC):
     name: str
     model: str
 
+    # Whether calls to this client should be paced against requests_per_minute.
+    # True for real network providers; the offline stub overrides this to False
+    # since it makes no network calls and is bound by no quota — pacing it just
+    # makes the "try it without a key" path slow for no reason.
+    needs_pacing: bool = True
+
     @abstractmethod
     async def generate_json(self, *, system: str, user: str) -> LLMResponse:
         """Return a JSON document as text. Raises ``LLMError`` subclasses."""
