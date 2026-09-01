@@ -43,37 +43,41 @@ MAX_BACKOFF_S = 30.0
 
 
 class RateLimiter:
-    """Client-side sliding-window limiter on calls started per minute.
+    """Paces call starts to a steady interval, with a cooldown shared by all workers.
 
-    Backoff alone is not enough against a hard quota. Retrying *after* a 429 is
-    reactive: on a free tier that allows 5 requests/minute, a batch of 18 spends
-    its whole retry budget discovering the same limit over and over. Pacing the
-    calls up front turns "12 of 18 failed" into "all 18 succeeded, slowly".
+    Evenly spaced rather than a sliding window. A window limiter is allowed to
+    fire five calls at 0:59 and five more at 1:01 — ten inside one of the
+    server's minutes — and so trips a quota our own accounting says we are under.
+    That is exactly what happened on the first live run of this pipeline: 17
+    rate-limit hits while the limiter believed it was compliant. For a full
+    batch the burst buys nothing anyway, since the total time is governed by the
+    quota either way.
 
-    A window rather than a fixed delay because the quota itself is a window: a
-    burst of 5 followed by a wait is allowed, and is faster than 5 evenly
-    spaced calls.
+    ``pause_for`` is the other half. A 429 is information about the *pool*, not
+    about one request: without sharing it, the other in-flight workers keep
+    firing into a limit already known to be closed.
     """
 
     def __init__(self, per_minute: int) -> None:
-        self._per_minute = per_minute
-        self._starts: deque[float] = deque()
+        # per_minute <= 0 disables pacing, but never disables the cooldown.
+        self._interval = 60.0 / per_minute if per_minute > 0 else 0.0
+        self._next_slot = 0.0
         self._lock = asyncio.Lock()
 
+    def pause_for(self, seconds: float) -> None:
+        """Hold every worker back for ``seconds`` — used when the server says so."""
+        self._next_slot = max(self._next_slot, time.monotonic() + seconds)
+
     async def acquire(self) -> None:
-        if self._per_minute <= 0:  # 0 disables pacing entirely
-            return
         while True:
             async with self._lock:
                 now = time.monotonic()
-                while self._starts and now - self._starts[0] >= 60.0:
-                    self._starts.popleft()
-                if len(self._starts) < self._per_minute:
-                    self._starts.append(now)
+                if now >= self._next_slot:
+                    self._next_slot = now + self._interval
                     return
-                wait = 60.0 - (now - self._starts[0])
-            # Sleep outside the lock so other workers can still drain the window.
-            await asyncio.sleep(max(wait, 0.0) + 0.05)
+                wait = self._next_slot - now
+            # Sleep outside the lock so the pool keeps draining in order.
+            await asyncio.sleep(wait + 0.02)
 
 
 @dataclass
@@ -193,9 +197,14 @@ async def triage_one(
                 "%s: attempt %d failed (%s)", request.id, attempt, last_error[:160]
             )
             if attempt < settings.max_attempts:
-                await _sleep_backoff(
-                    attempt, settings.backoff_base_s, getattr(exc, "retry_after_s", None)
-                )
+                retry_after = getattr(exc, "retry_after_s", None)
+                if limiter is not None and retry_after is not None:
+                    # Hand the wait to the limiter so every worker observes it,
+                    # then only jitter locally — otherwise we would wait twice.
+                    limiter.pause_for(retry_after)
+                    await _sleep_backoff(attempt, settings.backoff_base_s)
+                else:
+                    await _sleep_backoff(attempt, settings.backoff_base_s, retry_after)
             continue
 
         meta.model = response.model

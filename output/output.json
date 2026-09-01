@@ -1,17 +1,17 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-09-01T17:46:49+00:00",
+  "generated_at": "2026-09-01T17:56:41+00:00",
   "source": "data/input_requests.csv",
   "provider": "gemini",
   "model": "gemini-3.5-flash",
   "stats": {
     "total": 18,
-    "ok": 6,
-    "failed": 12,
-    "llm_calls": 45,
-    "prompt_tokens": 10823,
-    "output_tokens": 957,
-    "wall_time_s": 13.73,
+    "ok": 12,
+    "failed": 6,
+    "llm_calls": 30,
+    "prompt_tokens": 21482,
+    "output_tokens": 1584,
+    "wall_time_s": 331.34,
     "rules_fired": {}
   },
   "requests": [
@@ -20,19 +20,35 @@
       "channel": "Slack",
       "timestamp": "2026-06-08T09:14:00",
       "raw_text": "Привіт! Можна якось автоматизувати щотижневий звіт по Google Ads? Зараз руками вивантажую CSV і копіюю в табличку щопонеділка, займає десь годину. Треба основні метрики по кампаніях.",
-      "status": "failed",
-      "triage": null,
-      "error": {
-        "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 19.987108348s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '19s'}]}}",
-        "last_raw_response": null
+      "status": "ok",
+      "triage": {
+        "category": "звіт/аналітика",
+        "target_department": null,
+        "priority": "medium",
+        "short_summary": "Запит на автоматизацію щотижневого звіту по Google Ads, який зараз заповнюється вручну через CSV в таблицю.",
+        "requested_actions": [
+          "Автоматизувати вивантаження щотижневого звіту по Google Ads в таблицю"
+        ],
+        "needs_clarification": true,
+        "confidence": 0.9,
+        "clarifying_questions": [
+          "В яку саме таблицю (Google Sheets чи іншу) потрібно імпортувати дані?",
+          "Які саме основні метрики та розрізи по кампаніях мають бути у звіті?",
+          "Чи є готовий шаблон таблиці, куди потрібно вставляти дані?"
+        ],
+        "mentioned_systems": [
+          "Google Ads",
+          "CSV"
+        ],
+        "is_actionable": true
       },
+      "error": null,
       "meta": {
-        "attempts": 3,
+        "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 4357,
-        "prompt_tokens": null,
-        "output_tokens": null,
+        "latency_ms": 2580,
+        "prompt_tokens": 1811,
+        "output_tokens": 173,
         "applied_rules": []
       }
     },
@@ -41,19 +57,32 @@
       "channel": "Telegram",
       "timestamp": "2026-06-08T09:31:00",
       "raw_text": "хлопці треба бот",
-      "status": "failed",
-      "triage": null,
-      "error": {
-        "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 19.923842013s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '19s'}]}}",
-        "last_raw_response": null
+      "status": "ok",
+      "triage": {
+        "category": "автоматизація",
+        "target_department": null,
+        "priority": "low",
+        "short_summary": "Запит на створення бота без жодних деталей щодо його функціоналу чи платформи.",
+        "requested_actions": [
+          "Створити бота"
+        ],
+        "needs_clarification": true,
+        "confidence": 0.9,
+        "clarifying_questions": [
+          "Для якої платформи потрібен бот (Telegram, Slack тощо)?",
+          "Які завдання має виконувати цей бот?",
+          "З якими системами чи даними він має працювати?"
+        ],
+        "mentioned_systems": [],
+        "is_actionable": true
       },
+      "error": null,
       "meta": {
-        "attempts": 3,
+        "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 4397,
-        "prompt_tokens": null,
-        "output_tokens": null,
+        "latency_ms": 2110,
+        "prompt_tokens": 1757,
+        "output_tokens": 123,
         "applied_rules": []
       }
     },
@@ -67,17 +96,16 @@
         "category": "інтеграція",
         "target_department": "продажі",
         "priority": "medium",
-        "short_summary": "Запит на автоматичне створення саммарі та списку домовленостей з транскриптів дзвінків та їх імпорт у картку угоди в PlanFix.",
+        "short_summary": "Запит на автоматичне створення саммарі та списку домовленостей з транскриптів дзвінків та їх імпорт у картки угод PlanFix.",
         "requested_actions": [
           "Налаштувати автоматичне формування саммарі та списку домовленостей з транскриптів дзвінків",
-          "Налаштувати передачу сформованих даних у картку угоди в PlanFix"
+          "Інтегрувати передачу сформованих даних у картки угод PlanFix"
         ],
         "needs_clarification": true,
         "confidence": 0.9,
         "clarifying_questions": [
           "З якої системи телефонії або де саме зберігаються транскрипти дзвінків?",
-          "За якою логікою чи ідентифікатором шукати відповідну картку угоди в PlanFix?",
-          "Чи є вже готовий API або інтеграція між вашою телефонією та PlanFix?"
+          "За яким ідентифікатором (наприклад, номер телефону чи ID угоди) пов'язувати дзвінок із карткою в PlanFix?"
         ],
         "mentioned_systems": [
           "PlanFix"
@@ -88,9 +116,9 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 2534,
+        "latency_ms": 2560,
         "prompt_tokens": 1819,
-        "output_tokens": 205,
+        "output_tokens": 192,
         "applied_rules": []
       }
     },
@@ -106,7 +134,7 @@
         "priority": "low",
         "short_summary": "Запит про теоретичну можливість використання AI для оцінки якості статей у блозі перед публікацією.",
         "requested_actions": [
-          "Надати консультацію щодо можливості оцінки якості статей за допомогою AI"
+          "Надати експертну оцінку та думку щодо можливості використання AI для оцінки якості статей"
         ],
         "needs_clarification": false,
         "confidence": 0.95,
@@ -118,9 +146,9 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 1865,
+        "latency_ms": 1861,
         "prompt_tokens": 1802,
-        "output_tokens": 97,
+        "output_tokens": 104,
         "applied_rules": []
       }
     },
@@ -151,7 +179,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 2041,
+        "latency_ms": 2124,
         "prompt_tokens": 1794,
         "output_tokens": 156,
         "applied_rules": []
@@ -162,19 +190,32 @@
       "channel": "Email",
       "timestamp": "2026-06-08T11:40:00",
       "raw_text": "Hi team, we need a small service that takes our weekly analytics export from BigQuery and generates a short plain-language summary of the key changes week-over-week. Output ideally in a Google Doc. Хто може взятись?",
-      "status": "failed",
-      "triage": null,
-      "error": {
-        "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 18.619484163s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '18s'}]}}",
-        "last_raw_response": null
+      "status": "ok",
+      "triage": {
+        "category": "звіт/аналітика",
+        "target_department": null,
+        "priority": "medium",
+        "short_summary": "Створення сервісу для генерації щотижневого текстового резюме змін на основі експорту аналітики з BigQuery у Google Doc.",
+        "requested_actions": [
+          "Розробити сервіс для генерації текстового резюме змін тиждень до тижня",
+          "Налаштувати вивантаження результату в Google Doc"
+        ],
+        "needs_clarification": false,
+        "confidence": 0.9,
+        "clarifying_questions": [],
+        "mentioned_systems": [
+          "BigQuery",
+          "Google Docs"
+        ],
+        "is_actionable": true
       },
+      "error": null,
       "meta": {
-        "attempts": 3,
+        "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 3834,
-        "prompt_tokens": null,
-        "output_tokens": null,
+        "latency_ms": 60344,
+        "prompt_tokens": 1799,
+        "output_tokens": 134,
         "applied_rules": []
       }
     },
@@ -183,19 +224,30 @@
       "channel": "Slack",
       "timestamp": "2026-06-08T12:15:00",
       "raw_text": "У нас зламалась автоматизація по інвойсам з Мети — з понеділка нічого не парситься, рахунки висять. Хто це робив? треба полагодити",
-      "status": "failed",
-      "triage": null,
-      "error": {
-        "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 18.462565345s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '18s'}]}}",
-        "last_raw_response": null
+      "status": "ok",
+      "triage": {
+        "category": "баг/підтримка",
+        "target_department": null,
+        "priority": "high",
+        "short_summary": "Зламалася автоматизація парсингу інвойсів з Meta, через що з понеділка не опрацьовуються рахунки.",
+        "requested_actions": [
+          "Полагодити автоматизацію парсингу інвойсів з Meta"
+        ],
+        "needs_clarification": false,
+        "confidence": 0.95,
+        "clarifying_questions": [],
+        "mentioned_systems": [
+          "Meta"
+        ],
+        "is_actionable": true
       },
+      "error": null,
       "meta": {
-        "attempts": 3,
+        "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 3818,
-        "prompt_tokens": null,
-        "output_tokens": null,
+        "latency_ms": 60096,
+        "prompt_tokens": 1795,
+        "output_tokens": 109,
         "applied_rules": []
       }
     },
@@ -204,19 +256,26 @@
       "channel": "Telegram",
       "timestamp": "2026-06-08T13:02:00",
       "raw_text": "дякую за вчора, все працює супер 🙌",
-      "status": "failed",
-      "triage": null,
-      "error": {
-        "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 18.053726866s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.5-flash', 'location': 'global'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '18s'}]}}",
-        "last_raw_response": null
+      "status": "ok",
+      "triage": {
+        "category": "поза скоупом",
+        "target_department": null,
+        "priority": "low",
+        "short_summary": "Подяка за виконану роботу, запиту немає.",
+        "requested_actions": [],
+        "needs_clarification": false,
+        "confidence": 0.98,
+        "clarifying_questions": [],
+        "mentioned_systems": [],
+        "is_actionable": false
       },
+      "error": null,
       "meta": {
-        "attempts": 3,
+        "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 3738,
-        "prompt_tokens": null,
-        "output_tokens": null,
+        "latency_ms": 59755,
+        "prompt_tokens": 1762,
+        "output_tokens": 73,
         "applied_rules": []
       }
     },
@@ -225,34 +284,19 @@
       "channel": "Email",
       "timestamp": "2026-06-08T13:48:00",
       "raw_text": "Колеги, в HR хочемо прискорити первинний скринінг резюме на технічні вакансії. Ідея: завантажуємо PDF резюме, на виході — структуровані поля (досвід, стек, відповідність вимогам) і коротка оцінка. Обсяг — десь 30-50 резюме на тиждень.",
-      "status": "ok",
-      "triage": {
-        "category": "автоматизація",
-        "target_department": "HR",
-        "priority": "medium",
-        "short_summary": "Запит на автоматизацію первинного скринінгу PDF-резюме для технічних вакансій із виділенням структурованих полів та оцінки.",
-        "requested_actions": [
-          "Розробити рішення для автоматичного скринінгу PDF-резюме",
-          "Налаштувати виділення структурованих полів (досвід, стек, відповідність вимогам)",
-          "Налаштувати генерацію короткої оцінки кандидатів"
-        ],
-        "needs_clarification": true,
-        "confidence": 0.9,
-        "clarifying_questions": [
-          "Куди саме замовник планує завантажувати PDF-резюме (наприклад, Google Drive, Telegram-бот, спеціальна папка)?",
-          "Де саме мають зберігатися структуровані результати скринінгу (наприклад, у Google Sheets, CRM-системі чи надсилатися на пошту)?",
-          "Які саме технічні вимоги або критерії відповідності слід використовувати для оцінки?"
-        ],
-        "mentioned_systems": [],
-        "is_actionable": true
+      "status": "failed",
+      "triage": null,
+      "error": {
+        "kind": "transport",
+        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.5-flash\\nPlease retry in 48.898154459s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '48s'}]}}",
+        "last_raw_response": null
       },
-      "error": null,
       "meta": {
-        "attempts": 2,
+        "attempts": 3,
         "model": "gemini-3.5-flash",
-        "latency_ms": 4243,
-        "prompt_tokens": 1837,
-        "output_tokens": 241,
+        "latency_ms": 178033,
+        "prompt_tokens": null,
+        "output_tokens": null,
         "applied_rules": []
       }
     },
@@ -266,10 +310,10 @@
         "category": "звіт/аналітика",
         "target_department": null,
         "priority": "medium",
-        "short_summary": "Запит на автоматизацію збору згадок про Netpeak у Telegram з щоденним дайджестом та алертами про негативні згадки.",
+        "short_summary": "Запит на автоматизацію збору згадок про Netpeak в Telegram із щоденним дайджестом та алертами про негативні згадки.",
         "requested_actions": [
-          "Налаштувати щоденний дайджест згадок про Netpeak у Telegram",
-          "Налаштувати алерти про негативні згадки"
+          "Налаштувати щоденний дайджест згадок про Netpeak у Telegram-каналах",
+          "Налаштувати миттєві алерти про негативні згадки"
         ],
         "needs_clarification": false,
         "confidence": 0.9,
@@ -281,11 +325,11 @@
       },
       "error": null,
       "meta": {
-        "attempts": 2,
+        "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 3134,
+        "latency_ms": 59747,
         "prompt_tokens": 1814,
-        "output_tokens": 130,
+        "output_tokens": 138,
         "applied_rules": []
       }
     },
@@ -315,9 +359,9 @@
       },
       "error": null,
       "meta": {
-        "attempts": 2,
+        "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 2997,
+        "latency_ms": 60310,
         "prompt_tokens": 1757,
         "output_tokens": 128,
         "applied_rules": []
@@ -332,13 +376,13 @@
       "triage": null,
       "error": {
         "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 14.562196992s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '14s'}]}}",
+        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.5-flash\\nPlease retry in 48.847330871s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '48s'}]}}",
         "last_raw_response": null
       },
       "meta": {
         "attempts": 3,
         "model": "gemini-3.5-flash",
-        "latency_ms": 3900,
+        "latency_ms": 178435,
         "prompt_tokens": null,
         "output_tokens": null,
         "applied_rules": []
@@ -353,13 +397,13 @@
       "triage": null,
       "error": {
         "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 14.418807159s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '14s'}]}}",
+        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.5-flash\\nPlease retry in 48.70685717s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '48s'}]}}",
         "last_raw_response": null
       },
       "meta": {
         "attempts": 3,
         "model": "gemini-3.5-flash",
-        "latency_ms": 3633,
+        "latency_ms": 178579,
         "prompt_tokens": null,
         "output_tokens": null,
         "applied_rules": []
@@ -370,19 +414,32 @@
       "channel": "Telegram",
       "timestamp": "2026-06-08T16:40:00",
       "raw_text": "є ідея, гляньте https://example.com/some-tool можливо щось схоже зробимо для нас, не горить",
-      "status": "failed",
-      "triage": null,
-      "error": {
-        "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 12.937342849s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '12s'}]}}",
-        "last_raw_response": null
+      "status": "ok",
+      "triage": {
+        "category": "питання/консультація",
+        "target_department": null,
+        "priority": "low",
+        "short_summary": "Пропозиція розглянути інструмент за посиланням для можливого створення аналога в майбутньому.",
+        "requested_actions": [
+          "Ознайомитися з інструментом за посиланням",
+          "Оцінити можливість створення схожого інструменту"
+        ],
+        "needs_clarification": true,
+        "confidence": 0.8,
+        "clarifying_questions": [
+          "Які саме функції цього інструменту є найбільш корисними для нас?",
+          "Для яких саме завдань чи процесів планується використовувати цей інструмент?"
+        ],
+        "mentioned_systems": [],
+        "is_actionable": true
       },
+      "error": null,
       "meta": {
-        "attempts": 3,
+        "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 3850,
-        "prompt_tokens": null,
-        "output_tokens": null,
+        "latency_ms": 59765,
+        "prompt_tokens": 1781,
+        "output_tokens": 143,
         "applied_rules": []
       }
     },
@@ -395,13 +452,13 @@
       "triage": null,
       "error": {
         "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 11.68515s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.5-flash', 'location': 'global'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '11s'}]}}",
+        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.5-flash\\nPlease retry in 48.770791869s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.5-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '48s'}]}}",
         "last_raw_response": null
       },
       "meta": {
         "attempts": 3,
         "model": "gemini-3.5-flash",
-        "latency_ms": 4056,
+        "latency_ms": 178646,
         "prompt_tokens": null,
         "output_tokens": null,
         "applied_rules": []
@@ -412,19 +469,28 @@
       "channel": "Slack",
       "timestamp": "2026-06-09T09:08:00",
       "raw_text": "чат це нормально що в ассистента по базі знань іноді відповіді не зовсім по темі? просто хочу зрозуміти це баг чи так і має бути",
-      "status": "failed",
-      "triage": null,
-      "error": {
-        "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 11.471964863s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '11s'}]}}",
-        "last_raw_response": null
+      "status": "ok",
+      "triage": {
+        "category": "питання/консультація",
+        "target_department": null,
+        "priority": "low",
+        "short_summary": "Запит щодо коректності роботи асистента по базі знань та природи його неточних відповідей.",
+        "requested_actions": [
+          "Надати роз'яснення щодо логіки роботи асистента та причин неточних відповідей"
+        ],
+        "needs_clarification": false,
+        "confidence": 0.9,
+        "clarifying_questions": [],
+        "mentioned_systems": [],
+        "is_actionable": true
       },
+      "error": null,
       "meta": {
-        "attempts": 3,
+        "attempts": 1,
         "model": "gemini-3.5-flash",
-        "latency_ms": 4157,
-        "prompt_tokens": null,
-        "output_tokens": null,
+        "latency_ms": 60400,
+        "prompt_tokens": 1791,
+        "output_tokens": 111,
         "applied_rules": []
       }
     },
@@ -437,13 +503,13 @@
       "triage": null,
       "error": {
         "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 10.605802735s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10s'}]}}",
+        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.5-flash\\nPlease retry in 18.182308904s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '18s'}]}}",
         "last_raw_response": null
       },
       "meta": {
         "attempts": 3,
         "model": "gemini-3.5-flash",
-        "latency_ms": 3951,
+        "latency_ms": 150719,
         "prompt_tokens": null,
         "output_tokens": null,
         "applied_rules": []
@@ -458,13 +524,13 @@
       "triage": null,
       "error": {
         "kind": "transport",
-        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.5-flash\\nPlease retry in 10.610391662s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '5'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10s'}]}}",
+        "message": "Gemini rate limited or busy (429): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.5-flash\\nPlease retry in 18.358307061s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '18s'}]}}",
         "last_raw_response": null
       },
       "meta": {
         "attempts": 3,
         "model": "gemini-3.5-flash",
-        "latency_ms": 3803,
+        "latency_ms": 148546,
         "prompt_tokens": null,
         "output_tokens": null,
         "applied_rules": []
