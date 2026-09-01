@@ -5,6 +5,7 @@ runs.
 """
 
 import asyncio
+from itertools import pairwise
 
 import pytest
 
@@ -46,7 +47,7 @@ async def test_calls_are_evenly_spaced_not_bursted(clock):
         await limiter.acquire()
         stamps.append(clock.now)
 
-    gaps = [round(b - a, 2) for a, b in zip(stamps, stamps[1:])]
+    gaps = [round(b - a, 2) for a, b in pairwise(stamps)]
     assert all(gap >= 12.0 for gap in gaps), gaps
 
 

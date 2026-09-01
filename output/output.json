@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-09-01T18:30:48+00:00",
+  "generated_at": "2026-09-01T18:37:02+00:00",
   "source": "data/input_requests.csv",
   "provider": "gemini",
   "model": "gemini-3.1-flash-lite",
@@ -11,7 +11,7 @@
     "llm_calls": 18,
     "prompt_tokens": 35634,
     "output_tokens": 3882,
-    "wall_time_s": 206.11,
+    "wall_time_s": 206.6,
     "rules_fired": {},
     "aborted_reason": null
   },
@@ -49,7 +49,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 1830,
+        "latency_ms": 4517,
         "prompt_tokens": 1994,
         "output_tokens": 250,
         "applied_rules": []
@@ -84,7 +84,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 26129,
+        "latency_ms": 49469,
         "prompt_tokens": 1940,
         "output_tokens": 174,
         "applied_rules": []
@@ -122,7 +122,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 74614,
+        "latency_ms": 74924,
         "prompt_tokens": 2002,
         "output_tokens": 258,
         "applied_rules": []
@@ -153,7 +153,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 61892,
+        "latency_ms": 85473,
         "prompt_tokens": 1985,
         "output_tokens": 152,
         "applied_rules": []
@@ -187,7 +187,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 13618,
+        "latency_ms": 13582,
         "prompt_tokens": 1977,
         "output_tokens": 209,
         "applied_rules": []
@@ -227,7 +227,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 109316,
+        "latency_ms": 21914,
         "prompt_tokens": 1982,
         "output_tokens": 276,
         "applied_rules": []
@@ -261,7 +261,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 24167,
+        "latency_ms": 24187,
         "prompt_tokens": 1978,
         "output_tokens": 181,
         "applied_rules": []
@@ -290,7 +290,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 23243,
+        "latency_ms": 168392,
         "prompt_tokens": 1945,
         "output_tokens": 113,
         "applied_rules": []
@@ -327,7 +327,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 144235,
+        "latency_ms": 24508,
         "prompt_tokens": 2020,
         "output_tokens": 266,
         "applied_rules": []
@@ -366,7 +366,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 48435,
+        "latency_ms": 48456,
         "prompt_tokens": 1997,
         "output_tokens": 280,
         "applied_rules": []
@@ -401,7 +401,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 23600,
+        "latency_ms": 120532,
         "prompt_tokens": 1940,
         "output_tokens": 178,
         "applied_rules": []
@@ -430,7 +430,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 70844,
+        "latency_ms": 48253,
         "prompt_tokens": 1978,
         "output_tokens": 128,
         "applied_rules": []
@@ -467,7 +467,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 72330,
+        "latency_ms": 24253,
         "prompt_tokens": 1981,
         "output_tokens": 213,
         "applied_rules": []
@@ -501,7 +501,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 24067,
+        "latency_ms": 51103,
         "prompt_tokens": 1964,
         "output_tokens": 188,
         "applied_rules": []
@@ -536,7 +536,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 23311,
+        "latency_ms": 24475,
         "prompt_tokens": 2002,
         "output_tokens": 246,
         "applied_rules": []
@@ -571,7 +571,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 73060,
+        "latency_ms": 83401,
         "prompt_tokens": 1974,
         "output_tokens": 227,
         "applied_rules": []
@@ -609,7 +609,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 71647,
+        "latency_ms": 23996,
         "prompt_tokens": 1971,
         "output_tokens": 244,
         "applied_rules": []
@@ -648,7 +648,7 @@
       "meta": {
         "attempts": 1,
         "model": "gemini-3.1-flash-lite",
-        "latency_ms": 25181,
+        "latency_ms": 21060,
         "prompt_tokens": 2004,
         "output_tokens": 299,
         "applied_rules": []

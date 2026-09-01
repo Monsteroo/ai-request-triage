@@ -8,7 +8,7 @@ what cost, which is exactly what you want to know when two runs disagree.
 
 import json
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from . import __version__
@@ -44,7 +44,7 @@ def build_output_document(
 ) -> dict:
     return {
         "schema_version": __version__,
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "source": source,
         "provider": provider,
         "model": model,
@@ -98,7 +98,7 @@ def build_report(
         "# Звіт тріажу запитів",
         "",
         f"- **Джерело:** `{source}`",
-        f"- **Згенеровано:** {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
+        f"- **Згенеровано:** {datetime.now(UTC).isoformat(timespec='seconds')}",
         f"- **Провайдер / модель:** {provider} / `{model}`",
         f"- **Оброблено:** {stats.total} запит(ів) — {stats.ok} успішно, {stats.failed} з помилкою",
         f"- **Викликів до LLM:** {stats.llm_calls} · **токенів:** {stats.total_tokens:,}"

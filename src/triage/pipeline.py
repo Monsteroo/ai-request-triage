@@ -23,7 +23,6 @@ import logging
 import random
 import re
 import time
-from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -231,7 +230,7 @@ async def triage_one(
             calls += 1
             logger.error("%s: unrecoverable provider error: %s", request.id, exc)
             return finish_failed("transport", str(exc)), calls
-        except (TransientLLMError, TimeoutError, asyncio.TimeoutError) as exc:
+        except (TransientLLMError, TimeoutError) as exc:
             calls += 1
             last_kind, last_error = "transport", str(exc) or "request timed out"
             logger.warning(

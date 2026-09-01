@@ -23,3 +23,14 @@ where = ["src"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "UP", "B"]
+# UP042 pushes (str, Enum) towards enum.StrEnum. Kept deliberately: this is the
+# form pydantic validation and the provider schema builder are exercised
+# against, and StrEnum changes what str() returns on the members.
+ignore = ["UP042", "E501"]
