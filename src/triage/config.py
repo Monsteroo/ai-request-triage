@@ -28,6 +28,7 @@ class Settings:
     max_concurrency: int = 4
     max_attempts: int = 3
     request_timeout_s: int = 60
+    backoff_base_s: float = 1.0
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -39,6 +40,7 @@ class Settings:
             max_concurrency=_int_env("MAX_CONCURRENCY", 4),
             max_attempts=_int_env("MAX_ATTEMPTS", 3),
             request_timeout_s=_int_env("REQUEST_TIMEOUT_S", 60),
+            backoff_base_s=float(os.getenv("BACKOFF_BASE_S", "1.0")),
         )
 
 

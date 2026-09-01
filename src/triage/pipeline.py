@@ -81,8 +81,15 @@ def _format_validation_error(exc: ValidationError) -> str:
     )
 
 
-async def _sleep_backoff(attempt: int) -> None:
-    delay = min(MAX_BACKOFF_S, 2.0 ** (attempt - 1)) + random.uniform(0, 0.4)
+async def _sleep_backoff(attempt: int, base_s: float) -> None:
+    """Exponential backoff with jitter.
+
+    The jitter matters when a whole batch trips the same rate limit: without it
+    every worker wakes up at the same instant and trips it again.
+    """
+    if base_s <= 0:
+        return
+    delay = min(MAX_BACKOFF_S, base_s * 2.0 ** (attempt - 1)) + random.uniform(0, 0.4 * base_s)
     await asyncio.sleep(delay)
 
 
@@ -129,6 +136,9 @@ async def triage_one(
                 response = await client.generate_json(system=SYSTEM_PROMPT, user=user_prompt)
             calls += 1
         except PermanentLLMError as exc:
+            # The request was sent and rejected, so it counts against quota even
+            # though retrying it cannot help.
+            calls += 1
             logger.error("%s: unrecoverable provider error: %s", request.id, exc)
             return finish_failed("transport", str(exc)), calls
         except (TransientLLMError, TimeoutError, asyncio.TimeoutError) as exc:
@@ -136,7 +146,7 @@ async def triage_one(
             last_kind, last_error = "transport", str(exc) or "request timed out"
             logger.warning("%s: attempt %d failed (%s)", request.id, attempt, last_error)
             if attempt < settings.max_attempts:
-                await _sleep_backoff(attempt)
+                await _sleep_backoff(attempt, settings.backoff_base_s)
             continue
 
         meta.model = response.model
