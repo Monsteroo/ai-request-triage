@@ -27,13 +27,20 @@ MAX_OUTPUT_TOKENS = 1200
 class GeminiClient(LLMClient):
     name = "gemini"
 
-    def __init__(self, api_key: str, model: str, timeout_s: int = 60) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        timeout_s: int = 60,
+        thinking_budget: int | None = 0,
+    ) -> None:
         if not api_key:
             raise PermanentLLMError(
                 "GEMINI_API_KEY is not set. Get a free key at "
                 "https://aistudio.google.com/apikey, or run with --provider fake."
             )
         self.model = model
+        self._thinking_budget = thinking_budget
         self._client = genai.Client(
             api_key=api_key,
             http_options=types.HttpOptions(timeout=timeout_s * 1000),
@@ -47,7 +54,17 @@ class GeminiClient(LLMClient):
             temperature=0.0,
             seed=0,
             max_output_tokens=MAX_OUTPUT_TOKENS,
+            # We expose no tools, so the SDK's automatic function calling is pure
+            # overhead (and warns about it on every async call).
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
+        if self._thinking_budget is not None:
+            # Triage is a short classification, not a reasoning problem: a zero
+            # budget removes the thinking tokens without hurting quality on this
+            # data. Set GEMINI_THINKING_BUDGET=auto to let the model decide.
+            config.thinking_config = types.ThinkingConfig(
+                thinking_budget=self._thinking_budget
+            )
         try:
             response = await self._client.aio.models.generate_content(
                 model=self.model, contents=user, config=config
@@ -71,11 +88,16 @@ class GeminiClient(LLMClient):
             raise TransientLLMError("Gemini returned an empty response body")
 
         usage = response.usage_metadata
+        # Thinking tokens are billed as output but reported separately, so fold
+        # them in — otherwise the cost figures in the report understate reality.
+        output = (getattr(usage, "candidates_token_count", None) or 0) + (
+            getattr(usage, "thoughts_token_count", None) or 0
+        )
         return LLMResponse(
             text=text,
             model=response.model_version or self.model,
             prompt_tokens=getattr(usage, "prompt_token_count", None),
-            output_tokens=getattr(usage, "candidates_token_count", None),
+            output_tokens=output or None,
         )
 
     @staticmethod

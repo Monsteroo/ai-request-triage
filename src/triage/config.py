@@ -7,7 +7,10 @@ from dotenv import load_dotenv
 
 from .llm.base import LLMClient, PermanentLLMError
 
-DEFAULT_GEMINI_MODEL = "gemini-2.0-flash"
+# Pinned deliberately. Gemini aliases such as "gemini-flash-latest" move under
+# you, which is the last thing you want when the report is supposed to be
+# reproducible. Check availability with: python -m triage --list-models
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash"
 
 
 def _int_env(name: str, default: int) -> int:
@@ -20,6 +23,21 @@ def _int_env(name: str, default: int) -> int:
         raise PermanentLLMError(f"{name} must be an integer, got {raw!r}") from None
 
 
+def _thinking_budget_env() -> int | None:
+    """0 disables thinking, "auto" hands the decision to the model, N pins a budget."""
+    raw = os.getenv("GEMINI_THINKING_BUDGET", "").strip().lower()
+    if raw in {"auto", "default"}:
+        return None
+    if not raw:
+        return 0
+    try:
+        return int(raw)
+    except ValueError:
+        raise PermanentLLMError(
+            f"GEMINI_THINKING_BUDGET must be an integer or 'auto', got {raw!r}"
+        ) from None
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     provider: str = "gemini"
@@ -29,6 +47,7 @@ class Settings:
     max_attempts: int = 3
     request_timeout_s: int = 60
     backoff_base_s: float = 1.0
+    thinking_budget: int | None = 0
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -41,6 +60,7 @@ class Settings:
             max_attempts=_int_env("MAX_ATTEMPTS", 3),
             request_timeout_s=_int_env("REQUEST_TIMEOUT_S", 60),
             backoff_base_s=float(os.getenv("BACKOFF_BASE_S", "1.0")),
+            thinking_budget=_thinking_budget_env(),
         )
 
 
@@ -58,6 +78,7 @@ def build_client(settings: Settings) -> LLMClient:
             api_key=settings.gemini_api_key,
             model=settings.gemini_model,
             timeout_s=settings.request_timeout_s,
+            thinking_budget=settings.thinking_budget,
         )
     if settings.provider == "fake":
         from .llm.fake import FakeClient
