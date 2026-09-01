@@ -36,7 +36,14 @@ class Priority(str, Enum):
 
 
 class Department(str, Enum):
-    """Requesting department.
+    """Organisational vocabulary, used to answer two different questions.
+
+    ``target_department`` asks *who is asking* — strictly, null unless the text
+    says. ``domain`` asks *what the request is about* — inferred from the topic.
+    Splitting them was not the original design: the first live run returned null
+    for the requester on 9 of 12 rows, which is correct (the inbox rarely names
+    a sender) but leaves the report half empty. One field was answering two
+    questions; see the README.
 
     Deliberately a closed list: the brief names marketing / sales / analytics /
     PM / HR, and the inbox adds finance, content, SMM and support. Extending it
@@ -88,7 +95,10 @@ class TriageFields(BaseModel):
     # --- required by the brief -------------------------------------------
     category: Category
     target_department: Department | None = Field(
-        default=None, description="null when the request does not reveal a requester"
+        default=None, description="who is asking; null when the text does not say"
+    )
+    domain: Department | None = Field(
+        default=None, description="what the request is about; null only for non-requests"
     )
     priority: Priority
     short_summary: str = Field(min_length=3, max_length=400)
@@ -111,9 +121,10 @@ class TriageFields(BaseModel):
             return data
         data = dict(data)
 
-        dept = data.get("target_department")
-        if isinstance(dept, str) and dept.strip().casefold() in NULLISH_STRINGS:
-            data["target_department"] = None
+        for key in ("target_department", "domain"):
+            value = data.get(key)
+            if isinstance(value, str) and value.strip().casefold() in NULLISH_STRINGS:
+                data[key] = None
 
         # A single action returned as a bare string instead of a list.
         for key in ("requested_actions", "clarifying_questions", "mentioned_systems"):

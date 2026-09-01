@@ -110,9 +110,15 @@ def build_report(
 
     lines += _table("За категорією", _counts(ok_records, "category", [c.value for c in Category]), total_ok)
     lines += _table("За пріоритетом", _counts(ok_records, "priority", [p.value for p in Priority]), total_ok)
+    department_order = [d.value for d in Department] + [UNSET_DEPARTMENT]
     lines += _table(
-        "За відділом",
-        _counts(ok_records, "target_department", [d.value for d in Department] + [UNSET_DEPARTMENT]),
+        "За відділом-замовником (хто просить)",
+        _counts(ok_records, "target_department", department_order),
+        total_ok,
+    )
+    lines += _table(
+        "За предметною областю (про що запит)",
+        _counts(ok_records, "domain", department_order),
         total_ok,
     )
 

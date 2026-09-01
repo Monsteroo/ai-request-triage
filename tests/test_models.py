@@ -21,8 +21,16 @@ def test_accepts_a_well_formed_payload():
 
 
 @pytest.mark.parametrize("value", ["", "null", "невідомо", "n/a", "  -  "])
-def test_nullish_department_becomes_none(value):
-    assert TriageFields(**BASE, target_department=value).target_department is None
+@pytest.mark.parametrize("field", ["target_department", "domain"])
+def test_nullish_org_fields_become_none(field, value):
+    assert getattr(TriageFields(**BASE, **{field: value}), field) is None
+
+
+def test_requester_and_domain_are_independent():
+    """The inbox rarely names a sender, but the topic is almost always clear."""
+    t = TriageFields(**BASE, target_department=None, domain="маркетинг")
+    assert t.target_department is None
+    assert t.domain is Department.MARKETING
 
 
 def test_bare_string_is_lifted_into_a_list():

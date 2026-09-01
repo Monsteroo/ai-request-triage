@@ -60,6 +60,14 @@ SYSTEM_PROMPT = f"""\
 випливає з тексту. Якщо ні — постав null. НЕ вгадуй. "інше" — тільки для \
 випадку, коли відділ явно названий, але його немає у списку вище.
 
+## domain — ПРО ЩО запит, той самий список
+{_DEPARTMENTS}
+Це інше питання, ніж target_department. Там — хто просить, тут — якої області
+стосується сама задача. Виводь із теми, навіть якщо замовника не названо:
+запит про звіт по Google Ads має domain "маркетинг", навіть якщо невідомо, хто
+його надіслав. null став лише тоді, коли це взагалі не робоча задача (подяка,
+small talk).
+
 ## priority — {_PRIORITIES}
 Виводь із тону й змісту, а не з ввічливості:
   - high — явний дедлайн «сьогодні/терміново», CAPS-LOCK, слова «горить», \
@@ -109,7 +117,7 @@ FEW_SHOT = """\
 Приклади формату (вигадані, не з реального інбоксу):
 
 Запит: "Slack | привіт, а можна нам якийсь дашборд"
-{"category":"звіт/аналітика","target_department":null,"priority":"low",\
+{"category":"звіт/аналітика","target_department":null,"domain":"аналітика","priority":"low",\
 "short_summary":"Просять дашборд без уточнення метрик, джерела даних і аудиторії.",\
 "requested_actions":["Зробити дашборд"],"needs_clarification":true,"confidence":0.35,\
 "clarifying_questions":["Які саме метрики має показувати дашборд?",\
@@ -117,14 +125,14 @@ FEW_SHOT = """\
 "mentioned_systems":[],"is_actionable":true}
 
 Запит: "Telegram | о, класно вийшло, дякую!"
-{"category":"поза скоупом","target_department":null,"priority":"low",\
+{"category":"поза скоупом","target_department":null,"domain":null,"priority":"low",\
 "short_summary":"Подяка за виконану раніше роботу, запиту немає.",\
 "requested_actions":[],"needs_clarification":false,"confidence":0.95,\
 "clarifying_questions":[],"mentioned_systems":[],"is_actionable":false}
 
 Запит: "Email | Маркетинг просить щоденний дайджест згадок бренду, і окремо \
 сповіщення в Slack, якщо згадка негативна."
-{"category":"звіт/аналітика","target_department":"маркетинг","priority":"medium",\
+{"category":"звіт/аналітика","target_department":"маркетинг","domain":"маркетинг","priority":"medium",\
 "short_summary":"Щоденний дайджест згадок бренду плюс окремі сповіщення про \
 негативні згадки.","requested_actions":["Налаштувати щоденний дайджест згадок бренду",\
 "Налаштувати сповіщення в Slack про негативні згадки"],"needs_clarification":false,\

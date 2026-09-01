@@ -8,7 +8,8 @@ lose the guarantee. Both layers stay.
 
 ``target_department`` is intentionally absent from ``required``: an enum field
 that must be present pushes the model into picking *some* department rather than
-admitting it does not know. Omitted means null, which is what we want.
+admitting it does not know. Omitted means null, which is what we want there —
+and precisely what we do *not* want for ``domain``, which is required.
 """
 
 from ..models import Category, Department, Priority
@@ -24,6 +25,13 @@ TRIAGE_RESPONSE_SCHEMA: dict = {
             "enum": [d.value for d in Department],
             "nullable": True,
         },
+        # Unlike target_department this one *is* required: we want the model to
+        # actively decide the subject area rather than quietly omit it.
+        "domain": {
+            "type": "STRING",
+            "enum": [d.value for d in Department],
+            "nullable": True,
+        },
         "priority": {"type": "STRING", "enum": [p.value for p in Priority]},
         "short_summary": {"type": "STRING"},
         "requested_actions": _STRING_LIST,
@@ -35,6 +43,7 @@ TRIAGE_RESPONSE_SCHEMA: dict = {
     },
     "required": [
         "category",
+        "domain",
         "priority",
         "short_summary",
         "requested_actions",
@@ -47,6 +56,7 @@ TRIAGE_RESPONSE_SCHEMA: dict = {
     "property_ordering": [
         "category",
         "target_department",
+        "domain",
         "priority",
         "short_summary",
         "requested_actions",

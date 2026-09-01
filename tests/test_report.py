@@ -5,13 +5,14 @@ from triage.pipeline import RunStats
 from triage.report import build_output_document, build_report, write_json
 
 
-def make(rid, *, category="автоматизація", priority="medium", department=None, clarify=False,
-         questions=None, summary="суть запиту", status="ok"):
+def make(rid, *, category="автоматизація", priority="medium", department=None, domain=None,
+         clarify=False, questions=None, summary="суть запиту", status="ok"):
     triage = None
     if status == "ok":
         triage = TriageFields(
             category=category,
             target_department=department,
+            domain=domain,
             priority=priority,
             short_summary=summary,
             requested_actions=["дія"],
@@ -65,6 +66,18 @@ def test_aggregates_count_only_successful_records():
 def test_requests_without_a_department_are_bucketed_not_dropped():
     text = _report([make("A"), make("B", department="HR")])
     assert "| не визначено | 1 | 50% |" in text
+
+
+def test_requester_and_domain_get_separate_tables():
+    """An unknown sender must not hide a perfectly clear subject area."""
+    text = _report([make("A", department=None, domain="маркетинг")])
+    assert "За відділом-замовником (хто просить)" in text
+    assert "За предметною областю (про що запит)" in text
+
+    requester = text.split("За відділом-замовником")[1].split("###")[0]
+    subject = text.split("За предметною областю")[1].split("##")[0]
+    assert "| не визначено | 1 | 100% |" in requester
+    assert "| маркетинг | 1 | 100% |" in subject
 
 
 def test_clarification_section_lists_the_questions():
