@@ -1,0 +1,23 @@
+name = "testwork-netpeak"
+main = "worker/index.js"
+compatibility_date = "2026-08-09"
+
+# The page and the API share one origin: assets are served from ./public and
+# the Worker only intercepts /api/*. Nothing to configure for CORS.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Rate-limit counters. Create the namespace once and paste its id here:
+#   npx wrangler kv namespace create RATE_LIMITS
+# Until it exists the Worker still runs — limits simply degrade to "allow",
+# which is the right failure mode for a demo but not something to leave in
+# place on a public URL.
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Secrets are NOT set here — they are set once with `wrangler secret put` so
+# they never enter the repository:
+#   GEMINI_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+# See web/README.md.

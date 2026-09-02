@@ -15,3 +15,9 @@ venv/
 
 # os
 .DS_Store
+
+# wrangler local secrets
+.dev.vars
+web/.dev.vars
+web/node_modules/
+web/.wrangler/
