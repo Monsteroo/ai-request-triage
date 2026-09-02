@@ -15,7 +15,7 @@ binding = "ASSETS"
 # place on a public URL.
 [[kv_namespaces]]
 binding = "RATE_LIMITS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "0ca0263067bc41308f9cce14a3311adc"
 
 # Secrets are NOT set here — they are set once with `wrangler secret put` so
 # they never enter the repository:

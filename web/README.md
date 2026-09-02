@@ -65,17 +65,14 @@ npx wrangler dev
 
 ## Що треба зробити руками (я не маю доступу до цих кроків)
 
-### 1. KV для лічильників
+### 1. KV для лічильників — ✅ вже зроблено
+
+Namespace створений, його `id` уже стоїть у `wrangler.toml`. Якщо колись
+знадобиться новий:
 
 ```bash
-cd web
-npx wrangler kv namespace create RATE_LIMITS
+cd web && npx wrangler kv namespace create RATE_LIMITS
 ```
-
-Вставити отриманий `id` у `wrangler.toml` замість `REPLACE_WITH_KV_NAMESPACE_ID`.
-
-> Поки namespace немає, ліміти деградують у «пропускати всіх». Для локального
-> запуску це нормально, для публічної адреси — ні.
 
 ### 2. Ключ Gemini
 
