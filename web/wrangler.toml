@@ -2,6 +2,12 @@ name = "testwork-netpeak"
 main = "worker/index.js"
 compatibility_date = "2026-08-09"
 
+# The zone lives in the same Cloudflare account, so wrangler creates the DNS
+# record itself on deploy — no dashboard step.
+[[routes]]
+pattern = "testwork-netpeak.vitaliimaslii.com"
+custom_domain = true
+
 # The page and the API share one origin: assets are served from ./public and
 # the Worker only intercepts /api/*. Nothing to configure for CORS.
 [assets]
