@@ -170,8 +170,9 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── board ───────────────────────────────────────────────── */
-    .board-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .board-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .board-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .board-actions button { padding: 6px 12px; font-size: 0.78rem; }
     .board-head .meta-line { margin-left: auto; }
     .board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; }
     @media (max-width: 1280px) { .board { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -225,7 +226,10 @@
   <div class="container">
     <div class="topbar">
       <span class="topbar-mark"><span class="topbar-dot"></span>Тріаж <small>· тестове Netpeak</small></span>
-      <a class="repo-link" href="https://github.com/Monsteroo/ai-request-triage">Код на GitHub</a>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <a class="repo-link" href="https://t.me/netpeak_triage_test_bot" target="_blank" rel="noopener">Telegram: @netpeak_triage_test_bot</a>
+        <a class="repo-link" href="https://github.com/Monsteroo/ai-request-triage" target="_blank" rel="noopener">Код на GitHub</a>
+      </div>
     </div>
 
     <header class="narrow">
@@ -240,9 +244,18 @@
       <div class="disclosure">
         <b>Чесно про це демо.</b> Класифікація нового запиту — живий виклик моделі.
         Промпт і схема згенеровані з того самого Python-коду, що в репозиторії, тож
-        розійтися не можуть. Оркестрація тут спрощена (одна повторна спроба на
-        провайдер, без repair-промпта), а якщо основна модель вичерпала безкоштовну
-        квоту — запит автоматично йде на резервного провайдера.
+        розійтися не можуть. Оркестрація працює через мульти-провайдерний ланцюжок
+        на <b>безкоштовних планах (free tier)</b>: <b>Gemini → Groq → Cerebras</b>.
+        Якщо поточний провайдер вичерпав квоту (HTTP 429) або не налаштований —
+        запит автоматично йде на наступного (Groq і Cerebras хостять відкриту модель
+        gpt-oss-120b від OpenAI) без втручання користувача, а на створеній картці
+        з'являється відповідний бейдж із назвою резервного провайдера.
+      </div>
+
+      <div class="disclosure" style="margin-top: 10px;">
+        <b>Telegram-інтеграція та дайджест.</b> Кожен новий запит із форми можна в один клік надіслати в Telegram-бот прямо з його картки.
+        Кнопка <b>«Дайджест у Telegram»</b> формує підсумковий звіт по всій дошці (розподіл за категоріями, пріоритетами, терміновими задачами та запитами, що потребують уточнення).
+        Доступ до бота відкритий для будь-кого: <a href="https://t.me/netpeak_triage_test_bot" target="_blank" rel="noopener"><b>@netpeak_triage_test_bot</b></a>.
       </div>
     </header>
 
@@ -264,6 +277,10 @@
     <section>
       <div class="board-head">
         <h2>2. Дошка</h2>
+        <div class="board-actions">
+          <button id="download-csv" class="ghost" type="button" title="Завантажити поточну дошку у форматі CSV">Завантажити CSV</button>
+          <button id="send-digest" class="ghost" type="button" title="Надіслати підсумковий звіт по дошці в Telegram">Дайджест у Telegram</button>
+        </div>
         <span class="meta-line" id="board-meta"></span>
       </div>
       <p class="meta-line" style="margin-bottom: 10px;">

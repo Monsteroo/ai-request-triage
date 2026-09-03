@@ -99,13 +99,19 @@ cd web && npx wrangler kv namespace create RATE_LIMITS
 резервний провайдер.
 
 ```bash
+# Production (Cloudflare Worker secrets):
 npx wrangler secret put GEMINI_API_KEY      # https://aistudio.google.com/apikey
+npx wrangler secret put GEMINI_API_KEY_2    # додатковий безкоштовний ключ для ротації
 npx wrangler secret put GROQ_API_KEY        # https://console.groq.com/keys — опційно
+npx wrangler secret put GROQ_API_KEY_2      # додатковий ключ Groq
 npx wrangler secret put CEREBRAS_API_KEY    # https://cloud.cerebras.ai/ — опційно
 ```
 
-Усі три — безкоштовні тіри, картка не потрібна. Порядок ланцюжка фіксований
-у коді: Gemini → Groq → Cerebras.
+Для **локального запуску** (`npx wrangler dev`) ключі записуються у файл `web/.dev.vars` (див. шаблон `web/.dev.vars.example`).
+
+Усі три — безкоштовні тіри, картка не потрібна.
+- **Round-Robin ротація:** запити автоматично чергують стартовий ключ між налаштованими (`GEMINI_API_KEY`, `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3` тощо), розподіляючи ліміти (RPM) поміж кількома безкоштовними акаунтами.
+- **Failover-ланцюжок:** якщо ключ вичерпав квоту (HTTP 429), запит безшовно перемикається на наступний ключ того самого провайдера, а якщо вичерпані всі — на наступного резервного провайдера: Gemini → Groq → Cerebras.
 
 ### 3. Telegram (опційно — без нього кнопка просто неактивна)
 

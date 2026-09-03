@@ -5,11 +5,52 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CATEGORIES, DONE_COLUMN, groupIntoColumns, sortColumn } from "./app.js";
+import { buildCsv, CATEGORIES, DONE_COLUMN, groupIntoColumns, SAMPLES, sortColumn } from "./app.js";
 
 function item(id, category, priority, needsClarification = false) {
   return { id, triage: { category, priority, needs_clarification: needsClarification } };
 }
+
+test("buildCsv produces valid CSV with BOM and correct columns", () => {
+  const items = [
+    {
+      id: "REQ-001",
+      channel: "Slack",
+      raw_text: "текст з комою, та \"лапками\"",
+      triage: {
+        category: "автоматизація",
+        priority: "high",
+        target_department: "Маркетинг",
+        domain: "Маркетинг",
+        short_summary: "Створити бота",
+        requested_actions: ["налаштувати", "запустити"],
+        needs_clarification: true,
+        clarifying_questions: ["Хто замовник?"],
+        confidence: 0.95,
+      },
+      done: false,
+    },
+  ];
+
+  const csv = buildCsv(items);
+  assert.ok(csv.startsWith("\uFEFF")); // UTF-8 BOM
+  assert.ok(csv.includes("REQ-001"));
+  assert.ok(csv.includes("автоматизація"));
+  assert.ok(csv.includes("Маркетинг"));
+  assert.ok(csv.includes("В черзі"));
+  assert.ok(csv.includes('"текст з комою, та ""лапками"""'));
+});
+
+test("SAMPLES contains 10 distinct non-empty examples under 1000 characters", () => {
+  assert.equal(SAMPLES.length, 10);
+  const set = new Set(SAMPLES);
+  assert.equal(set.size, 10);
+  for (const s of SAMPLES) {
+    assert.ok(typeof s === "string");
+    assert.ok(s.trim().length > 10);
+    assert.ok(s.trim().length <= 1000);
+  }
+});
 
 test("sortColumn orders high before medium before low", () => {
   const items = [item("a", "x", "low"), item("b", "x", "high"), item("c", "x", "medium")];

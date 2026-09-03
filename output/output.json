@@ -1,17 +1,17 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-09-01T18:42:28+00:00",
+  "generated_at": "2026-09-03T04:09:07+00:00",
   "source": "data/input_requests.csv",
-  "provider": "gemini",
-  "model": "gemini-3.1-flash-lite",
+  "provider": "fake",
+  "model": "fake-1",
   "stats": {
     "total": 18,
     "ok": 18,
     "failed": 0,
     "llm_calls": 18,
-    "prompt_tokens": 39342,
-    "output_tokens": 3435,
-    "wall_time_s": 207.31,
+    "prompt_tokens": 21600,
+    "output_tokens": 2160,
+    "wall_time_s": 0.0,
     "rules_fired": {},
     "aborted_reason": null
   },
@@ -24,16 +24,15 @@
       "status": "ok",
       "triage": {
         "category": "звіт/аналітика",
-        "target_department": null,
-        "domain": "маркетинг",
+        "target_department": "маркетинг",
+        "domain": null,
         "priority": "medium",
-        "short_summary": "Автоматизація щотижневого звіту по Google Ads для заміни ручного вивантаження CSV та копіювання даних у таблицю.",
+        "short_summary": "Привіт! Можна якось автоматизувати щотижневий звіт по Google Ads? Зараз руками вивантажую CSV і копіюю в табличку щопонеділка, займає десь годину. Треба основні метрики по кампанія",
         "requested_actions": [
-          "Автоматизувати збір даних з Google Ads",
-          "Налаштувати автоматичне оновлення звіту з основними метриками по кампаніях"
+          "Привіт! Можна якось автоматизувати щотижневий звіт по Google Ads? Зараз руками вивантажую CSV і копіюю в табличку щопоне"
         ],
         "needs_clarification": false,
-        "confidence": 0.95,
+        "confidence": 0.8,
         "clarifying_questions": [],
         "mentioned_systems": [
           "Google Ads"
@@ -43,10 +42,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 4003,
-        "prompt_tokens": 2200,
-        "output_tokens": 190,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -60,17 +59,15 @@
         "category": "автоматизація",
         "target_department": null,
         "domain": null,
-        "priority": "low",
-        "short_summary": "Запит на створення бота без уточнення його функціоналу, цілей та платформи.",
+        "priority": "medium",
+        "short_summary": "хлопці треба бот",
         "requested_actions": [
-          "Створити бота"
+          "хлопці треба бот"
         ],
         "needs_clarification": true,
-        "confidence": 0.9,
+        "confidence": 0.35,
         "clarifying_questions": [
-          "Які функції має виконувати бот?",
-          "У якому месенджері або системі він має працювати?",
-          "Які дані або процеси він має обробляти?"
+          "Що саме треба зробити?"
         ],
         "mentioned_systems": [],
         "is_actionable": true
@@ -78,10 +75,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 97958,
-        "prompt_tokens": 2146,
-        "output_tokens": 178,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -92,22 +89,17 @@
       "raw_text": "Доброго дня. У відділі продажів накопичується багато транскриптів дзвінків з клієнтами. Хочемо, щоб по кожному дзвінку автоматично формувалося коротке саммарі + список домовленостей, і це падало в PlanFix у картку угоди. Це реально?",
       "status": "ok",
       "triage": {
-        "category": "автоматизація",
+        "category": "інтеграція",
         "target_department": "продажі",
-        "domain": "продажі",
+        "domain": null,
         "priority": "medium",
-        "short_summary": "Автоматичне створення саммарі та списку домовленостей з транскриптів дзвінків у картках угод PlanFix.",
+        "short_summary": "Доброго дня. У відділі продажів накопичується багато транскриптів дзвінків з клієнтами. Хочемо, щоб по кожному дзвінку автоматично формувалося коротке саммарі + список домовленосте",
         "requested_actions": [
-          "Налаштувати автоматичне формування саммарі та списку домовленостей з транскриптів дзвінків",
-          "Налаштувати передачу результатів у картку угоди в PlanFix"
+          "Доброго дня. У відділі продажів накопичується багато транскриптів дзвінків з клієнтами. Хочемо, щоб по кожному дзвінку а"
         ],
-        "needs_clarification": true,
-        "confidence": 0.9,
-        "clarifying_questions": [
-          "Де саме зараз зберігаються транскрипти дзвінків?",
-          "Який формат мають ці транскрипти (текстові файли, посилання, API-об'єкти)?",
-          "Чи є вже готовий процес або інструмент для транскрибації?"
-        ],
+        "needs_clarification": false,
+        "confidence": 0.8,
+        "clarifying_questions": [],
         "mentioned_systems": [
           "PlanFix"
         ],
@@ -116,10 +108,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 170660,
-        "prompt_tokens": 2208,
-        "output_tokens": 262,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -131,15 +123,15 @@
       "status": "ok",
       "triage": {
         "category": "питання/консультація",
-        "target_department": null,
-        "domain": "контент",
+        "target_department": "контент",
+        "domain": null,
         "priority": "low",
-        "short_summary": "Запит на консультацію щодо можливості використання AI для оцінки якості статей у блозі перед публікацією.",
+        "short_summary": "Питання радше теоретичне: чи можна взагалі за допомогою AI оцінювати якість наших статей у блозі перед публікацією? Поки що нічого впроваджувати не треба, просто цікаво ваша думка.",
         "requested_actions": [
-          "Надати експертну думку щодо можливості використання AI для оцінки якості статей"
+          "Питання радше теоретичне: чи можна взагалі за допомогою AI оцінювати якість наших статей у блозі перед публікацією? Поки"
         ],
         "needs_clarification": false,
-        "confidence": 1.0,
+        "confidence": 0.8,
         "clarifying_questions": [],
         "mentioned_systems": [],
         "is_actionable": true
@@ -147,10 +139,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 38040,
-        "prompt_tokens": 2191,
-        "output_tokens": 152,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -163,14 +155,14 @@
       "triage": {
         "category": "звіт/аналітика",
         "target_department": "фінанси/бухгалтерія",
-        "domain": "фінанси/бухгалтерія",
+        "domain": null,
         "priority": "high",
-        "short_summary": "Термінове вивантаження списку контрагентів з витратами понад 50 тис. за травень.",
+        "short_summary": "ГОРИТЬ. Сьогодні до вечора треба вивантажити список усіх контрагентів з витратами понад 50к за травень, бухгалтерія просить терміново. можете швидко?",
         "requested_actions": [
-          "Вивантажити список контрагентів з витратами понад 50к за травень"
+          "ГОРИТЬ. Сьогодні до вечора треба вивантажити список усіх контрагентів з витратами понад 50к за травень, бухгалтерія прос"
         ],
         "needs_clarification": false,
-        "confidence": 0.95,
+        "confidence": 0.8,
         "clarifying_questions": [],
         "mentioned_systems": [],
         "is_actionable": true
@@ -178,10 +170,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 15887,
-        "prompt_tokens": 2183,
-        "output_tokens": 173,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -193,17 +185,15 @@
       "status": "ok",
       "triage": {
         "category": "звіт/аналітика",
-        "target_department": null,
-        "domain": "аналітика",
+        "target_department": "аналітика",
+        "domain": null,
         "priority": "medium",
-        "short_summary": "Створення сервісу для генерації текстового саммарі тижневих змін даних з BigQuery у форматі Google Doc.",
+        "short_summary": "Hi team, we need a small service that takes our weekly analytics export from BigQuery and generates a short plain-language summary of the key changes week-over-week. Output ideally",
         "requested_actions": [
-          "Розробити сервіс для аналізу тижневих експортів з BigQuery",
-          "Налаштувати генерацію текстового саммарі змін",
-          "Налаштувати вивантаження результату в Google Doc"
+          "Hi team, we need a small service that takes our weekly analytics export from BigQuery and generates a short plain-langua"
         ],
         "needs_clarification": false,
-        "confidence": 0.95,
+        "confidence": 0.8,
         "clarifying_questions": [],
         "mentioned_systems": [
           "BigQuery",
@@ -214,10 +204,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 23778,
-        "prompt_tokens": 2188,
-        "output_tokens": 205,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -229,28 +219,26 @@
       "status": "ok",
       "triage": {
         "category": "баг/підтримка",
-        "target_department": null,
-        "domain": "фінанси/бухгалтерія",
-        "priority": "high",
-        "short_summary": "Зламалася автоматизація парсингу інвойсів з Meta, дані не оновлюються з понеділка.",
+        "target_department": "фінанси/бухгалтерія",
+        "domain": null,
+        "priority": "medium",
+        "short_summary": "У нас зламалась автоматизація по інвойсам з Мети — з понеділка нічого не парситься, рахунки висять. Хто це робив? треба полагодити",
         "requested_actions": [
-          "Полагодити автоматизацію парсингу інвойсів з Meta"
+          "У нас зламалась автоматизація по інвойсам з Мети — з понеділка нічого не парситься, рахунки висять. Хто це робив? треба"
         ],
         "needs_clarification": false,
-        "confidence": 0.95,
+        "confidence": 0.8,
         "clarifying_questions": [],
-        "mentioned_systems": [
-          "Meta"
-        ],
+        "mentioned_systems": [],
         "is_actionable": true
       },
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 120499,
-        "prompt_tokens": 2184,
-        "output_tokens": 168,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -265,10 +253,10 @@
         "target_department": null,
         "domain": null,
         "priority": "low",
-        "short_summary": "Подяка за виконану роботу, запиту немає.",
+        "short_summary": "дякую за вчора, все працює супер 🙌",
         "requested_actions": [],
         "needs_clarification": false,
-        "confidence": 1.0,
+        "confidence": 0.8,
         "clarifying_questions": [],
         "mentioned_systems": [],
         "is_actionable": false
@@ -276,10 +264,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 24134,
-        "prompt_tokens": 2151,
-        "output_tokens": 113,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -292,30 +280,27 @@
       "triage": {
         "category": "автоматизація",
         "target_department": "HR",
-        "domain": "HR",
+        "domain": null,
         "priority": "medium",
-        "short_summary": "Розробка інструменту для автоматичного парсингу та оцінки резюме у форматі PDF.",
+        "short_summary": "Колеги, в HR хочемо прискорити первинний скринінг резюме на технічні вакансії. Ідея: завантажуємо PDF резюме, на виході — структуровані поля (досвід, стек, відповідність вимогам) і",
         "requested_actions": [
-          "Створити інструмент для вилучення структурованих даних з PDF-резюме",
-          "Налаштувати автоматичну оцінку відповідності резюме вимогам вакансії"
+          "Колеги, в HR хочемо прискорити первинний скринінг резюме на технічні вакансії. Ідея: завантажуємо PDF резюме, на виході"
         ],
-        "needs_clarification": true,
-        "confidence": 0.9,
-        "clarifying_questions": [
-          "Які саме технічні вакансії маються на увазі та чи є для них чіткі вимоги (опис вакансії)?",
-          "У якому вигляді має бути результат (таблиця, база даних, повідомлення в месенджері)?",
-          "Чи є вже готовий шаблон вимог, з якими треба порівнювати резюме?"
+        "needs_clarification": false,
+        "confidence": 0.8,
+        "clarifying_questions": [],
+        "mentioned_systems": [
+          "PDF"
         ],
-        "mentioned_systems": [],
         "is_actionable": true
       },
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 28754,
-        "prompt_tokens": 2226,
-        "output_tokens": 259,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -327,34 +312,26 @@
       "status": "ok",
       "triage": {
         "category": "звіт/аналітика",
-        "target_department": null,
-        "domain": "маркетинг",
+        "target_department": "маркетинг",
+        "domain": null,
         "priority": "medium",
-        "short_summary": "Налаштування щоденного дайджесту згадок бренду Netpeak у Telegram-каналах та окремих сповіщень про негативні згадки.",
+        "short_summary": "Можна автоматизувати збір згадок про Netpeak в телеграм-каналах і робити дайджест раз на день? І ще окремо — алерт, якщо згадка негативна. Дві задачі по суті, але обидві про моніто",
         "requested_actions": [
-          "Автоматизувати збір згадок про Netpeak у Telegram-каналах",
-          "Налаштувати щоденний дайджест згадок",
-          "Налаштувати сповіщення про негативні згадки"
+          "Можна автоматизувати збір згадок про Netpeak в телеграм-каналах і робити дайджест раз на день? І ще окремо — алерт, якщо"
         ],
-        "needs_clarification": true,
-        "confidence": 0.9,
-        "clarifying_questions": [
-          "Які саме Telegram-канали потрібно моніторити?",
-          "Який інструмент або сервіс ви плануєте використовувати для моніторингу згадок?",
-          "Де саме має публікуватися дайджест (Slack, пошта, інше)?"
-        ],
-        "mentioned_systems": [
-          "Telegram"
-        ],
+        "needs_clarification": false,
+        "confidence": 0.8,
+        "clarifying_questions": [],
+        "mentioned_systems": [],
         "is_actionable": true
       },
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 22495,
-        "prompt_tokens": 2203,
-        "output_tokens": 277,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -365,20 +342,18 @@
       "raw_text": "нам би табличку якусь",
       "status": "ok",
       "triage": {
-        "category": "звіт/аналітика",
+        "category": "автоматизація",
         "target_department": null,
-        "domain": "аналітика",
-        "priority": "low",
-        "short_summary": "Запит на створення таблиці без уточнення даних, джерел та мети.",
+        "domain": null,
+        "priority": "medium",
+        "short_summary": "нам би табличку якусь",
         "requested_actions": [
-          "Створити таблицю"
+          "нам би табличку якусь"
         ],
         "needs_clarification": true,
-        "confidence": 0.9,
+        "confidence": 0.35,
         "clarifying_questions": [
-          "Які саме дані мають бути в таблиці?",
-          "З яких систем чи джерел потрібно підтягувати інформацію?",
-          "Яка мета створення цієї таблиці?"
+          "Що саме треба зробити?"
         ],
         "mentioned_systems": [],
         "is_actionable": true
@@ -386,10 +361,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 21427,
-        "prompt_tokens": 2146,
-        "output_tokens": 180,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -402,23 +377,25 @@
       "triage": {
         "category": "поза скоупом",
         "target_department": "SMM",
-        "domain": "інше",
-        "priority": "low",
-        "short_summary": "Запит щодо закупівлі техніки, що не входить до компетенції AI-юніту.",
-        "requested_actions": [],
+        "domain": null,
+        "priority": "medium",
+        "short_summary": "Доброго дня! Хотіли б закупити новий потужний ноутбук для рендеру відео в SMM-відділі, бюджет до 80к. Куди подати заявку?",
+        "requested_actions": [
+          "Доброго дня! Хотіли б закупити новий потужний ноутбук для рендеру відео в SMM-відділі, бюджет до 80к. Куди подати заявку"
+        ],
         "needs_clarification": false,
-        "confidence": 1.0,
+        "confidence": 0.8,
         "clarifying_questions": [],
         "mentioned_systems": [],
-        "is_actionable": false
+        "is_actionable": true
       },
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 71150,
-        "prompt_tokens": 2184,
-        "output_tokens": 128,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -430,15 +407,15 @@
       "status": "ok",
       "triage": {
         "category": "звіт/аналітика",
-        "target_department": null,
-        "domain": "маркетинг",
+        "target_department": "маркетинг",
+        "domain": null,
         "priority": "medium",
-        "short_summary": "Додати користувача до розсилки звіту по Google Ads, який вже налаштований для іншого колеги.",
+        "short_summary": "Привіт. Той самий звіт по Google Ads, що Оля просила в понеділок — мені теж дуже потрібен, я в тій же команді. Можна щоб і мені приходив?",
         "requested_actions": [
-          "Додати користувача до списку отримувачів звіту по Google Ads"
+          "Привіт. Той самий звіт по Google Ads, що Оля просила в понеділок — мені теж дуже потрібен, я в тій же команді. Можна щоб"
         ],
         "needs_clarification": false,
-        "confidence": 0.95,
+        "confidence": 0.8,
         "clarifying_questions": [],
         "mentioned_systems": [
           "Google Ads"
@@ -448,10 +425,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 21447,
-        "prompt_tokens": 2187,
-        "output_tokens": 163,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -462,30 +439,27 @@
       "raw_text": "є ідея, гляньте https://example.com/some-tool можливо щось схоже зробимо для нас, не горить",
       "status": "ok",
       "triage": {
-        "category": "питання/консультація",
+        "category": "автоматизація",
         "target_department": null,
-        "domain": "інше",
-        "priority": "low",
-        "short_summary": "Запит на оцінку можливості реалізації інструменту, аналогічного до запропонованого за посиланням.",
+        "domain": null,
+        "priority": "high",
+        "short_summary": "є ідея, гляньте https://example.com/some-tool можливо щось схоже зробимо для нас, не горить",
         "requested_actions": [
-          "Оцінити можливість розробки аналогічного інструменту"
+          "є ідея, гляньте https://example.com/some-tool можливо щось схоже зробимо для нас, не горить"
         ],
-        "needs_clarification": true,
-        "confidence": 0.9,
-        "clarifying_questions": [
-          "Які саме функції з цього інструменту є найбільш цінними для нас?",
-          "Яку бізнес-задачу має вирішувати цей інструмент?"
-        ],
+        "needs_clarification": false,
+        "confidence": 0.8,
+        "clarifying_questions": [],
         "mentioned_systems": [],
         "is_actionable": true
       },
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 26655,
-        "prompt_tokens": 2170,
-        "output_tokens": 193,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -498,29 +472,25 @@
       "triage": {
         "category": "автоматизація",
         "target_department": "контент",
-        "domain": "контент",
+        "domain": null,
         "priority": "medium",
-        "short_summary": "Розробка інструменту для автоматичного створення 5 коротких постів для соцмереж із довгого тексту інтерв'ю з урахуванням tone of voice.",
+        "short_summary": "Команда контенту просить інструмент, який з довгого інтерв'ю (текст 10-15 сторінок) робить 5 коротких постів для соцмереж у нашому tone of voice. Пріоритет середній, треба десь до",
         "requested_actions": [
-          "Створити інструмент для генерації постів із тексту інтерв'ю"
+          "Команда контенту просить інструмент, який з довгого інтерв'ю (текст 10-15 сторінок) робить 5 коротких постів для соцмере"
         ],
-        "needs_clarification": true,
-        "confidence": 0.9,
-        "clarifying_questions": [
-          "Який саме інструмент очікується (бот, веб-інтерфейс, скрипт)?",
-          "Де саме зберігається tone of voice (є окремий документ чи приклади постів)?",
-          "Які платформи для публікації постів мають бути враховані?"
-        ],
+        "needs_clarification": false,
+        "confidence": 0.8,
+        "clarifying_questions": [],
         "mentioned_systems": [],
         "is_actionable": true
       },
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 72296,
-        "prompt_tokens": 2208,
-        "output_tokens": 236,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -533,14 +503,14 @@
       "triage": {
         "category": "питання/консультація",
         "target_department": null,
-        "domain": "аналітика",
-        "priority": "low",
-        "short_summary": "Запит на консультацію щодо коректності роботи асистента бази знань.",
+        "domain": null,
+        "priority": "medium",
+        "short_summary": "чат це нормально що в ассистента по базі знань іноді відповіді не зовсім по темі? просто хочу зрозуміти це баг чи так і має бути",
         "requested_actions": [
-          "Надати оцінку, чи є нерелевантні відповіді асистента багом чи очікуваною поведінкою"
+          "чат це нормально що в ассистента по базі знань іноді відповіді не зовсім по темі? просто хочу зрозуміти це баг чи так і"
         ],
         "needs_clarification": false,
-        "confidence": 0.9,
+        "confidence": 0.8,
         "clarifying_questions": [],
         "mentioned_systems": [],
         "is_actionable": true
@@ -548,10 +518,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 82671,
-        "prompt_tokens": 2180,
-        "output_tokens": 160,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -563,30 +533,26 @@
       "status": "ok",
       "triage": {
         "category": "інтеграція",
-        "target_department": null,
-        "domain": "підтримка",
+        "target_department": "підтримка",
+        "domain": null,
         "priority": "high",
-        "short_summary": "Налаштування автоматичного створення тікетів у PlanFix на основі повідомлень із каналу #support у Slack.",
+        "short_summary": "терміново треба інтеграція слака з планфіксом щоб задачі з каналу #support автоматом створювались тікетами. дуже багато ручної роботи зараз",
         "requested_actions": [
-          "Інтегрувати Slack із PlanFix",
-          "Налаштувати автоматичне створення тікетів у PlanFix із повідомлень у каналі #support"
+          "терміново треба інтеграція слака з планфіксом щоб задачі з каналу #support автоматом створювались тікетами. дуже багато"
         ],
         "needs_clarification": false,
-        "confidence": 0.95,
+        "confidence": 0.8,
         "clarifying_questions": [],
-        "mentioned_systems": [
-          "Slack",
-          "PlanFix"
-        ],
+        "mentioned_systems": [],
         "is_actionable": true
       },
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 22429,
-        "prompt_tokens": 2177,
-        "output_tokens": 182,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     },
@@ -599,16 +565,14 @@
       "triage": {
         "category": "звіт/аналітика",
         "target_department": "аналітика",
-        "domain": "аналітика",
+        "domain": null,
         "priority": "medium",
-        "short_summary": "Створення дашборду для моніторингу аномалій у витратах підрядників на основі даних з BigQuery з текстовим поясненням причин.",
+        "short_summary": "Доброго ранку. Аналітика хоче дашборд, який раз на день підтягує дані з BigQuery і показує аномалії у витратах по підрядниках (різкі стрибки). Бажано з поясненням природною мовою,",
         "requested_actions": [
-          "Створити дашборд для відстеження аномалій у витратах по підрядниках",
-          "Налаштувати щоденне оновлення даних з BigQuery",
-          "Додати функціонал пояснення аномалій природною мовою"
+          "Доброго ранку. Аналітика хоче дашборд, який раз на день підтягує дані з BigQuery і показує аномалії у витратах по підряд"
         ],
         "needs_clarification": false,
-        "confidence": 0.95,
+        "confidence": 0.8,
         "clarifying_questions": [],
         "mentioned_systems": [
           "BigQuery"
@@ -618,10 +582,10 @@
       "error": null,
       "meta": {
         "attempts": 1,
-        "model": "gemini-3.1-flash-lite",
-        "latency_ms": 48339,
-        "prompt_tokens": 2210,
-        "output_tokens": 216,
+        "model": "fake-1",
+        "latency_ms": 0,
+        "prompt_tokens": 1200,
+        "output_tokens": 120,
         "applied_rules": []
       }
     }

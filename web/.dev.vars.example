@@ -1,0 +1,15 @@
+# Cloudflare Worker local secrets (web/.dev.vars)
+# 1 key per provider for round-robin rotation & fallback:
+
+# 1. Gemini (Google AI Studio: https://aistudio.google.com/apikey)
+GEMINI_API_KEY=AIzaSy...
+
+# 2. Groq (Console: https://console.groq.com/keys)
+GROQ_API_KEY=gsk_...
+
+# 3. Cerebras (Console: https://cloud.cerebras.ai/)
+CEREBRAS_API_KEY=csk-...
+
+# Telegram notification (optional)
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=

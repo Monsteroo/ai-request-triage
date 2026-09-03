@@ -17,7 +17,13 @@ from .llm.base import LLMError
 from .models import ProcessedRequest
 from .pipeline import triage_all
 from .reader import read_requests
-from .report import build_output_document, build_report, write_json, write_report
+from .report import (
+    build_output_document,
+    build_report,
+    write_csv,
+    write_json,
+    write_report,
+)
 
 logger = logging.getLogger("triage")
 
@@ -115,8 +121,10 @@ async def run(args: argparse.Namespace) -> int:
 
     json_path = args.outdir / "output.json"
     report_path = args.outdir / "report.md"
+    csv_path = args.outdir / "report.csv"
     write_json(document, json_path)
     write_report(report, report_path)
+    write_csv(records, csv_path)
 
     logger.info(
         "Done in %.1fs — %d ok, %d failed, %d LLM call(s), %d token(s)",
@@ -126,7 +134,7 @@ async def run(args: argparse.Namespace) -> int:
         stats.llm_calls,
         stats.total_tokens,
     )
-    logger.info("Wrote %s and %s", json_path, report_path)
+    logger.info("Wrote %s, %s and %s", json_path, report_path, csv_path)
     return EXIT_PARTIAL if stats.failed else EXIT_OK
 
 

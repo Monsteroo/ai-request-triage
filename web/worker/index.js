@@ -67,8 +67,60 @@ function classify(raw) {
   return validateTriage(parsed, CONTRACT.vocabularies);
 }
 
+const esc = (v) =>
+  String(v ?? "—").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+async function sendTelegramNotification(env, text, triage) {
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return false;
+  try {
+    const actions = Array.isArray(triage.requested_actions) ? triage.requested_actions : [];
+    const questions = Array.isArray(triage.clarifying_questions)
+      ? triage.clarifying_questions
+      : [];
+
+    const lines = [
+      "⚡ <b>Новий запит класифіковано</b>",
+      "",
+      `<b>Категорія:</b> ${esc(triage.category)}`,
+      `<b>Пріоритет:</b> ${esc(triage.priority)}`,
+      `<b>Область:</b> ${esc(triage.domain)}`,
+      `<b>Замовник:</b> ${esc(triage.target_department)}`,
+      "",
+      `<b>Суть:</b> ${esc(triage.short_summary)}`,
+    ];
+    if (actions.length) {
+      lines.push("", "<b>Дії:</b>", ...actions.map((a) => `• ${esc(a)}`));
+    }
+    if (triage.needs_clarification) {
+      lines.push("", "<b>Потребує уточнення.</b>");
+      if (questions.length) lines.push(...questions.map((q) => `❓ ${esc(q)}`));
+    }
+    lines.push("", `<i>Оригінал:</i> ${esc(text)}`);
+
+    const response = await fetch(
+      `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          chat_id: env.TELEGRAM_CHAT_ID,
+          text: lines.join("\n"),
+          parse_mode: "HTML",
+          disable_web_page_preview: true,
+        }),
+      }
+    );
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+let requestCounter = 0;
+
 async function handleTriage(request, env) {
-  const chain = buildProviderChain(env, CONTRACT.responseSchema);
+  const rotateOffset = requestCounter++;
+  const chain = buildProviderChain(env, CONTRACT.responseSchema, { rotateOffset });
   if (!chain.length) {
     return json(
       { error: "Демо не налаштоване: немає жодного ключа моделі (Gemini, Groq, Cerebras)." },
@@ -98,10 +150,15 @@ async function handleTriage(request, env) {
   const result = await runProviderChain(chain, CONTRACT.systemPrompt, buildUserPrompt(text), classify);
 
   if (result.ok) {
+    let telegramSent = false;
+    if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+      telegramSent = await sendTelegramNotification(env, text, result.value);
+    }
     return json({
       triage: result.value,
       provider: result.provider,
       providerLabel: result.providerLabel,
+      telegramSent,
     });
   }
 
@@ -124,12 +181,6 @@ async function handleTelegram(request, env) {
     return json({ error: "Очікується JSON." }, 400);
   }
 
-  const text = String(body?.raw_text ?? "").trim().slice(0, MAX_INPUT_CHARS);
-  const triage = body?.triage;
-  if (!text || !triage || typeof triage !== "object") {
-    return json({ error: "Немає даних для надсилання." }, 400);
-  }
-
   const gate = await hit(
     env.RATE_LIMITS,
     `tg:${clientIp(request)}:${dayStamp()}`,
@@ -143,33 +194,68 @@ async function handleTelegram(request, env) {
     );
   }
 
-  // Everything interpolated here comes from the model's validated output or
-  // the visitor's own text, so it is escaped rather than trusted as markup.
   const esc = (v) =>
     String(v ?? "—").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const actions = Array.isArray(triage.requested_actions) ? triage.requested_actions : [];
-  const questions = Array.isArray(triage.clarifying_questions)
-    ? triage.clarifying_questions
-    : [];
 
-  const lines = [
-    "<b>Новий запит із демо тріажу</b>",
-    "",
-    `<b>Категорія:</b> ${esc(triage.category)}`,
-    `<b>Пріоритет:</b> ${esc(triage.priority)}`,
-    `<b>Область:</b> ${esc(triage.domain)}`,
-    `<b>Замовник:</b> ${esc(triage.target_department)}`,
-    "",
-    `<b>Суть:</b> ${esc(triage.short_summary)}`,
-  ];
-  if (actions.length) {
-    lines.push("", "<b>Дії:</b>", ...actions.map((a) => `• ${esc(a)}`));
+  let lines = [];
+
+  if (body?.type === "digest") {
+    const summary = body?.summary || {};
+    const total = summary.total || 0;
+    const active = summary.active || total;
+    const clarify = summary.clarify || 0;
+    const high = summary.high || 0;
+    const categories = summary.categories || {};
+    const urgentItems = Array.isArray(summary.urgent) ? summary.urgent : [];
+
+    lines = [
+      "📊 <b>Підсумковий дайджест тріажу запитів</b>",
+      "",
+      `🔹 <b>Всього на дошці:</b> ${total} (активних: ${active})`,
+      `⚠️ <b>Потребують уточнення:</b> ${clarify}`,
+      `🔥 <b>Високий пріоритет (High):</b> ${high}`,
+      "",
+      "<b>Розподіл за категоріями:</b>",
+      ...Object.entries(categories).map(([cat, count]) => `• ${esc(cat)}: ${count}`),
+    ];
+
+    if (urgentItems.length) {
+      lines.push("", "<b>Термінові завдання:</b>");
+      urgentItems.slice(0, 5).forEach((u) => {
+        lines.push(`• [${esc(u.id)}] ${esc(u.summary)} (${esc(u.department || "відділ не вказано")})`);
+      });
+    }
+  } else {
+    const text = String(body?.raw_text ?? "").trim().slice(0, MAX_INPUT_CHARS);
+    const triage = body?.triage;
+    if (!text || !triage || typeof triage !== "object") {
+      return json({ error: "Немає даних для надсилання." }, 400);
+    }
+
+    const actions = Array.isArray(triage.requested_actions) ? triage.requested_actions : [];
+    const questions = Array.isArray(triage.clarifying_questions)
+      ? triage.clarifying_questions
+      : [];
+
+    lines = [
+      "<b>Новий запит із демо тріажу</b>",
+      "",
+      `<b>Категорія:</b> ${esc(triage.category)}`,
+      `<b>Пріоритет:</b> ${esc(triage.priority)}`,
+      `<b>Область:</b> ${esc(triage.domain)}`,
+      `<b>Замовник:</b> ${esc(triage.target_department)}`,
+      "",
+      `<b>Суть:</b> ${esc(triage.short_summary)}`,
+    ];
+    if (actions.length) {
+      lines.push("", "<b>Дії:</b>", ...actions.map((a) => `• ${esc(a)}`));
+    }
+    if (triage.needs_clarification) {
+      lines.push("", "<b>Потребує уточнення.</b>");
+      if (questions.length) lines.push(...questions.map((q) => `❓ ${esc(q)}`));
+    }
+    lines.push("", `<i>Оригінал:</i> ${esc(text)}`);
   }
-  if (triage.needs_clarification) {
-    lines.push("", "<b>Потребує уточнення.</b>");
-    if (questions.length) lines.push(...questions.map((q) => `❓ ${esc(q)}`));
-  }
-  lines.push("", `<i>Оригінал:</i> ${esc(text)}`);
 
   const response = await fetch(
     `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,

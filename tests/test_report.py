@@ -126,3 +126,17 @@ def test_output_json_round_trips(tmp_path):
     assert loaded["requests"][1]["triage"] is None
     assert loaded["requests"][1]["error"]["kind"] == "validation"
     assert loaded["provider"] == "fake" and "generated_at" in loaded
+
+
+def test_output_csv_round_trips(tmp_path):
+    from triage.report import write_csv
+    records = [make("A", department="HR"), make("B", status="failed")]
+    path = tmp_path / "report.csv"
+    write_csv(records, path)
+
+    content = path.read_text(encoding="utf-8-sig")
+    lines = content.strip().split("\n")
+    assert len(lines) == 3  # header + 2 records
+    assert "HR" in lines[1]
+    assert "A" in lines[1]
+    assert "B" in lines[2]

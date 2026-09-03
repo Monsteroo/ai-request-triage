@@ -112,36 +112,72 @@ const callCerebras = openAICompatible({
   model: CEREBRAS_MODEL,
 });
 
+function formatProviderLabel(baseLabel, keyIndex) {
+  if (keyIndex === 1) return baseLabel;
+  if (baseLabel.includes("(")) {
+    return baseLabel.replace(/\)$/, `, ключ ${keyIndex})`);
+  }
+  return `${baseLabel} (ключ ${keyIndex})`;
+}
+
+function collectKeys(env, baseKey, defaultLabel) {
+  const keys = [];
+  if (env[baseKey]) {
+    keys.push({ value: env[baseKey], label: formatProviderLabel(defaultLabel, 1) });
+  }
+  for (let i = 2; i <= 9; i += 1) {
+    const key = env[`${baseKey}_${i}`];
+    if (key) {
+      keys.push({ value: key, label: formatProviderLabel(defaultLabel, i) });
+    }
+  }
+  return keys;
+}
+
+function rotateArray(arr, offset = 0) {
+  if (arr.length <= 1) return arr;
+  const n = ((offset % arr.length) + arr.length) % arr.length;
+  return [...arr.slice(n), ...arr.slice(0, n)];
+}
+
 /**
  * Build the ordered chain from whichever secrets are actually configured. A
  * provider whose key is absent is skipped — the same graceful degradation the
  * rest of this Worker already uses for Gemini, now generalised to N providers.
- * The demo works with just one key set; each additional one is a fallback.
+ * Multiple keys per provider are rotated in round-robin fashion using rotateOffset
+ * to distribute request load seamlessly without hitting rate limits prematurely.
  */
-export function buildProviderChain(env, responseSchema) {
+export function buildProviderChain(env, responseSchema, { rotateOffset = 0 } = {}) {
   const chain = [];
-  if (env.GEMINI_API_KEY) {
+
+  const geminiKeys = collectKeys(env, "GEMINI_API_KEY", "Gemini");
+  geminiKeys.forEach((key) => {
     chain.push({
       name: "gemini",
-      label: "Gemini",
-      call: (system, user) => callGemini(env.GEMINI_API_KEY, system, user, responseSchema),
+      label: key.label,
+      call: (system, user) => callGemini(key.value, system, user, responseSchema),
     });
-  }
-  if (env.GROQ_API_KEY) {
+  });
+
+  const groqKeys = collectKeys(env, "GROQ_API_KEY", "Groq (gpt-oss-120b)");
+  groqKeys.forEach((key) => {
     chain.push({
       name: "groq",
-      label: "Groq (gpt-oss-120b)",
-      call: (system, user) => callGroq(env.GROQ_API_KEY, system, user),
+      label: key.label,
+      call: (system, user) => callGroq(key.value, system, user),
     });
-  }
-  if (env.CEREBRAS_API_KEY) {
+  });
+
+  const cerebrasKeys = collectKeys(env, "CEREBRAS_API_KEY", "Cerebras (gpt-oss-120b)");
+  cerebrasKeys.forEach((key) => {
     chain.push({
       name: "cerebras",
-      label: "Cerebras (gpt-oss-120b)",
-      call: (system, user) => callCerebras(env.CEREBRAS_API_KEY, system, user),
+      label: key.label,
+      call: (system, user) => callCerebras(key.value, system, user),
     });
-  }
-  return chain;
+  });
+
+  return rotateArray(chain, rotateOffset);
 }
 
 /**

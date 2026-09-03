@@ -205,3 +205,49 @@ def build_report(
 def write_report(text: str, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
+
+
+def build_csv(records: list[ProcessedRequest]) -> str:
+    import csv
+    import io
+
+    output = io.StringIO()
+    writer = csv.writer(output, lineterminator="\n")
+    writer.writerow([
+        "id",
+        "channel",
+        "status",
+        "category",
+        "priority",
+        "target_department",
+        "domain",
+        "short_summary",
+        "requested_actions",
+        "needs_clarification",
+        "confidence",
+        "clarifying_questions",
+        "raw_text",
+    ])
+    for record in records:
+        t = record.triage
+        writer.writerow([
+            record.id,
+            record.channel,
+            record.status,
+            t.category.value if t else "",
+            t.priority.value if t else "",
+            t.target_department.value if t and t.target_department else "",
+            t.domain.value if t and t.domain else "",
+            t.short_summary if t else "",
+            "; ".join(t.requested_actions) if t and t.requested_actions else "",
+            str(t.needs_clarification) if t else "",
+            f"{t.confidence:.2f}" if t and t.confidence is not None else "",
+            "; ".join(t.clarifying_questions) if t and t.clarifying_questions else "",
+            record.raw_text,
+        ])
+    return output.getvalue()
+
+
+def write_csv(records: list[ProcessedRequest], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(build_csv(records), encoding="utf-8-sig")

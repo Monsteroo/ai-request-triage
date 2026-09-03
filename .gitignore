@@ -16,8 +16,13 @@ venv/
 # os
 .DS_Store
 
-# wrangler local secrets
+# wrangler local secrets & artifacts
 .dev.vars
 web/.dev.vars
 web/node_modules/
 web/.wrangler/
+
+# internal notes
+HANDOFF_TO_GEMINI.md
+
+

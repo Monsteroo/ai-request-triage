@@ -114,6 +114,71 @@ test("buildProviderChain works with only a non-Gemini key set", () => {
   assert.deepEqual(chain.map((p) => p.name), ["groq"]);
 });
 
+test("buildProviderChain supports multiple keys per provider in sequential order", () => {
+  const chain = buildProviderChain(
+    {
+      GEMINI_API_KEY: "g1",
+      GEMINI_API_KEY_2: "g2",
+      GROQ_API_KEY: "q1",
+      GROQ_API_KEY_2: "q2",
+      CEREBRAS_API_KEY: "c1",
+    },
+    {}
+  );
+  assert.deepEqual(
+    chain.map((p) => p.name),
+    ["gemini", "gemini", "groq", "groq", "cerebras"]
+  );
+  assert.deepEqual(
+    chain.map((p) => p.label),
+    [
+      "Gemini",
+      "Gemini (ключ 2)",
+      "Groq (gpt-oss-120b)",
+      "Groq (gpt-oss-120b, ключ 2)",
+      "Cerebras (gpt-oss-120b)",
+    ]
+  );
+});
+
+test("buildProviderChain rotates keys via rotateOffset across consecutive requests (Round-Robin)", () => {
+  const env = {
+    GEMINI_API_KEY: "g1",
+    GEMINI_API_KEY_2: "g2",
+    GEMINI_API_KEY_3: "g3",
+  };
+
+  const req0 = buildProviderChain(env, {}, { rotateOffset: 0 });
+  assert.deepEqual(req0.map((p) => p.label), ["Gemini", "Gemini (ключ 2)", "Gemini (ключ 3)"]);
+
+  const req1 = buildProviderChain(env, {}, { rotateOffset: 1 });
+  assert.deepEqual(req1.map((p) => p.label), ["Gemini (ключ 2)", "Gemini (ключ 3)", "Gemini"]);
+
+  const req2 = buildProviderChain(env, {}, { rotateOffset: 2 });
+  assert.deepEqual(req2.map((p) => p.label), ["Gemini (ключ 3)", "Gemini", "Gemini (ключ 2)"]);
+});
+
+test("buildProviderChain rotates 3 providers with 1 key each across consecutive requests (Round-Robin)", () => {
+  const env = {
+    GEMINI_API_KEY: "g",
+    GROQ_API_KEY: "q",
+    CEREBRAS_API_KEY: "c",
+  };
+
+  const req0 = buildProviderChain(env, {}, { rotateOffset: 0 });
+  assert.deepEqual(req0.map((p) => p.name), ["gemini", "groq", "cerebras"]);
+
+  const req1 = buildProviderChain(env, {}, { rotateOffset: 1 });
+  assert.deepEqual(req1.map((p) => p.name), ["groq", "cerebras", "gemini"]);
+
+  const req2 = buildProviderChain(env, {}, { rotateOffset: 2 });
+  assert.deepEqual(req2.map((p) => p.name), ["cerebras", "gemini", "groq"]);
+
+  const req3 = buildProviderChain(env, {}, { rotateOffset: 3 });
+  assert.deepEqual(req3.map((p) => p.name), ["gemini", "groq", "cerebras"]);
+});
+
 test("an empty env produces an empty chain, not an error", () => {
   assert.deepEqual(buildProviderChain({}, {}), []);
 });
+
