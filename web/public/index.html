@@ -7,36 +7,54 @@
   <meta name="description" content="Живе демо LLM-тріажу вхідних запитів: вписуєте запит, модель класифікує його у сувору схему і кладе на дошку.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Montserrat:wght@500;600;700;900&display=swap" rel="stylesheet">
   <style>
+    /* ────────────────────────────────────────────────────────────────
+       Palette measured directly from netpeak.ua's computed styles (not
+       guessed): Montserrat throughout, near-black #1A1B1F body text, brand
+       cyan #00B3E3 for identity/links, warm orange #F07F1B reserved for the
+       one primary call to action, 4px button radius. Priority colors
+       (high/medium/low) and the danger/alert red are semantic UI signals,
+       not brand colors, so they stay their own hues — same as any corporate
+       site's form-validation red is independent of its brand palette.
+       Shape rule: buttons/inputs/cards/columns = 4px (netpeak's own scale);
+       tag-like badges = full pill. Documented once here, applied everywhere.
+    ──────────────────────────────────────────────────────────────── */
     :root {
       --paper: #FFFFFF;
-      --surface: #F5F5F5;
-      --ink: #232323;
-      --ink-deep: #171717;
-      --muted: #8C8C8C;
-      --accent: #337AB7;
-      --line: #E0E0E0;
-      --note-bg: #FBF6E9;
-      --note-line: #D9C89B;
+      --surface: #F6F7F8;
+      --ink: #1A1B1F;
+      --ink-deep: #101114;
+      --muted: #777575;         /* darkened from netpeak's measured #9C9A9A — 4.58:1 on white, that one was 3.69:1 */
+      --accent: #007D9F;        /* darkened from netpeak's measured #00B3E3 — 4.74:1 on white, that one was 3.67:1 */
+      --accent-bright: #00B3E3; /* netpeak cyan as measured — decorative use only (dots, borders), never text */
+      --cta: #F07F1B;           /* netpeak's own CTA orange, unchanged — only ever a background, never text */
+      --cta-ink: #B25E14;       /* darkened for text-on-white uses — 4.66:1, the un-darkened value was 4.06:1 */
+      --line: #E3E4E7;
+      --note-bg: #EAF7FB;
+      --note-line: #BFE6F0;
       --danger-bg: #FDF2F2;
       --danger-line: #E05252;
       --high: #C0392B;
       --medium: #B7791F;
       --low: #6B7280;
-      --radius: 10px;
+      --radius: 4px;
+      --radius-pill: 999px;
     }
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) {
-        --paper: #171717;
-        --surface: #1F1F1F;
-        --ink: #EDEDED;
+        --paper: #16171A;
+        --surface: #1E1F23;
+        --ink: #ECEDEF;
         --ink-deep: #FFFFFF;
-        --muted: #9A9A9A;
-        --accent: #5A9BD8;
-        --line: #2E2E2E;
-        --note-bg: #2A2416;
-        --note-line: #6B5A2E;
+        --muted: #9A9CA3;
+        --accent: #4FC7E8;
+        --accent-bright: #4FC7E8;
+        --cta: #FF9A42;
+        --cta-ink: #FFB066;
+        --line: #303136;
+        --note-bg: #172A30;
+        --note-line: #234752;
         --danger-bg: #2A1717;
         --danger-line: #8C2E2E;
         --high: #E57373;
@@ -45,9 +63,11 @@
       }
     }
     :root[data-theme="dark"] {
-      --paper: #171717; --surface: #1F1F1F; --ink: #EDEDED; --ink-deep: #FFFFFF;
-      --muted: #9A9A9A; --accent: #5A9BD8; --line: #2E2E2E;
-      --note-bg: #2A2416; --note-line: #6B5A2E; --danger-bg: #2A1717; --danger-line: #8C2E2E;
+      --paper: #16171A; --surface: #1E1F23; --ink: #ECEDEF; --ink-deep: #FFFFFF;
+      --muted: #9A9CA3; --accent: #4FC7E8; --accent-bright: #4FC7E8;
+      --cta: #FF9A42; --cta-ink: #FFB066; --line: #303136;
+      --note-bg: #172A30; --note-line: #234752;
+      --danger-bg: #2A1717; --danger-line: #8C2E2E;
       --high: #E57373; --medium: #D9A441; --low: #9AA0AA;
     }
 
@@ -60,12 +80,30 @@
       line-height: 1.55;
       min-height: 100vh;
     }
-    .container { width: 100%; max-width: 1240px; margin: 0 auto; padding: 32px 20px 64px; }
+    .container { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 20px 64px; }
     .narrow { max-width: 860px; }
 
-    header { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
-    h1 { font-size: 1.85rem; font-weight: 700; color: var(--ink-deep); letter-spacing: -0.02em; margin-bottom: 8px; }
-    .lead { color: var(--muted); margin-bottom: 14px; }
+    /* ── top bar ─────────────────────────────────────────────── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px; border-bottom: 1px solid var(--line);
+    }
+    .topbar-mark { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 0.92rem; color: var(--ink-deep); }
+    .topbar-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-bright); flex: none; }
+    .topbar-mark small { font-weight: 500; color: var(--muted); font-size: 0.78rem; }
+    .topbar a.repo-link {
+      font-size: 0.82rem; font-weight: 600; color: var(--accent);
+      text-decoration: none; border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 7px 14px;
+    }
+    .topbar a.repo-link:hover { border-color: var(--accent); }
+
+    header { padding: 36px 0 20px; }
+    h1 {
+      font-size: 2.05rem; font-weight: 900; color: var(--ink-deep);
+      letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 12px;
+    }
+    .lead { color: var(--muted); margin-bottom: 14px; max-width: 62ch; }
     .meta-line { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--muted); }
     .meta-line a { color: var(--accent); }
 
@@ -80,9 +118,9 @@
     .disclosure b { color: var(--ink-deep); }
 
     /* ── input block ─────────────────────────────────────────── */
-    .composer { margin-bottom: 32px; }
+    .composer { margin: 8px 0 32px; padding-top: 24px; border-top: 1px solid var(--line); }
     .composer h2, .board-head h2 {
-      font-size: 1.05rem; font-weight: 600; color: var(--ink-deep); margin-bottom: 10px;
+      font-size: 1.05rem; font-weight: 700; color: var(--ink-deep); margin-bottom: 10px;
     }
     textarea {
       width: 100%; min-height: 92px; resize: vertical;
@@ -92,12 +130,16 @@
     }
     textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
     .composer-row { display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+
     button {
-      font-family: inherit; font-weight: 600; font-size: 0.9rem;
-      background: var(--accent); color: #fff; border: 0;
-      border-radius: var(--radius); padding: 10px 18px; cursor: pointer;
+      font-family: inherit; font-weight: 700; font-size: 0.88rem;
+      border: 0; border-radius: var(--radius); padding: 11px 20px; cursor: pointer;
+      transition: transform 0.12s ease;
     }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    /* One CTA color, used only for the single primary action on the page. */
+    button.primary { background: var(--cta); color: #1A0E00; }
     button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); }
     .counter { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--muted); margin-left: auto; }
     .counter.over { color: var(--danger-line); }
@@ -115,49 +157,61 @@
       border: 1px dashed var(--accent); border-radius: var(--radius);
       padding: 12px 14px; font-size: 0.88rem; color: var(--muted);
       display: flex; align-items: center; gap: 10px;
-      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .processing { animation: pulse 1.4s ease-in-out infinite; }
+      .spinner { animation: spin 0.8s linear infinite; }
     }
     @keyframes pulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
     .spinner {
       width: 14px; height: 14px; flex: none;
       border: 2px solid var(--line); border-top-color: var(--accent);
-      border-radius: 50%; animation: spin 0.8s linear infinite;
+      border-radius: 50%;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── board ───────────────────────────────────────────────── */
     .board-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
     .board-head .meta-line { margin-left: auto; }
-    .board { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
-    @media (max-width: 1100px) { .board { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (max-width: 720px)  { .board { grid-template-columns: 1fr; } }
+    .board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; }
+    @media (max-width: 1280px) { .board { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    @media (max-width: 760px)  { .board { grid-template-columns: 1fr; } }
 
     .column { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; min-height: 90px; }
-    .column-title { font-size: 0.8rem; font-weight: 700; color: var(--ink-deep); display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .column-done { background: var(--paper); border-style: dashed; }
+    .column-title { font-size: 0.78rem; font-weight: 700; color: var(--ink-deep); display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
     .column-title .count { font-family: 'IBM Plex Mono', monospace; color: var(--muted); font-weight: 500; }
 
     .card {
       background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--low);
-      border-radius: 8px; padding: 9px 10px; margin-bottom: 8px; font-size: 0.82rem;
+      border-radius: var(--radius); padding: 9px 10px; margin-bottom: 8px; font-size: 0.82rem;
     }
     .card.p-high { border-left-color: var(--high); }
     .card.p-medium { border-left-color: var(--medium); }
-    .card.is-new { animation: land 0.55s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 0 0 2px var(--accent); }
+    .card.is-done { opacity: 0.62; }
+    .card.is-done .card-summary { text-decoration: line-through; text-decoration-color: var(--muted); }
+    @media (prefers-reduced-motion: no-preference) {
+      .card.is-new { animation: land 0.55s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 0 0 2px var(--accent); }
+    }
     @keyframes land {
       from { opacity: 0; transform: translateY(-14px) scale(0.96); }
       to   { opacity: 1; transform: none; }
     }
+    .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
     .card-id { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .done-toggle { flex: none; display: flex; align-items: center; cursor: pointer; padding-top: 1px; }
+    .done-toggle input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
     .card-summary { margin: 5px 0; color: var(--ink); }
     .badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
     .badge {
       font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem;
-      border: 1px solid var(--line); border-radius: 20px; padding: 1px 7px; color: var(--muted);
+      border: 1px solid var(--line); border-radius: var(--radius-pill); padding: 1px 8px; color: var(--muted);
     }
     .badge.prio-high { color: var(--high); border-color: var(--high); }
     .badge.prio-medium { color: var(--medium); border-color: var(--medium); }
     .badge.clarify { color: var(--accent); border-color: var(--accent); }
-    .questions { margin-top: 7px; padding: 7px 9px; background: var(--note-bg); border: 1px solid var(--note-line); border-radius: 6px; font-size: 0.76rem; }
+    .badge.fallback { color: var(--cta-ink); border-color: var(--cta); }
+    .questions { margin-top: 7px; padding: 7px 9px; background: var(--note-bg); border: 1px solid var(--note-line); border-radius: var(--radius); font-size: 0.76rem; }
     .questions ul { margin: 3px 0 0 14px; }
     .card-actions { margin-top: 8px; }
     .card-actions button { font-size: 0.72rem; padding: 5px 10px; }
@@ -169,6 +223,11 @@
 </head>
 <body>
   <div class="container">
+    <div class="topbar">
+      <span class="topbar-mark"><span class="topbar-dot"></span>Тріаж <small>· тестове Netpeak</small></span>
+      <a class="repo-link" href="https://github.com/Monsteroo/ai-request-triage">Код на GitHub</a>
+    </div>
+
     <header class="narrow">
       <h1>Тріаж вхідних запитів</h1>
       <p class="lead">
@@ -179,10 +238,11 @@
       <p class="meta-line" id="run-meta">дошка нижче — реальний вивід пайплайна</p>
 
       <div class="disclosure">
-        <b>Чесно про це демо.</b> Класифікація нового запиту — живий виклик Gemini.
+        <b>Чесно про це демо.</b> Класифікація нового запиту — живий виклик моделі.
         Промпт і схема згенеровані з того самого Python-коду, що в репозиторії, тож
-        розійтися не можуть. Але оркестрація тут спрощена: одна повторна спроба замість
-        чотирьох, без repair-промпта. Безкоштовна квота обмежена, тож ліміти жорсткі.
+        розійтися не можуть. Оркестрація тут спрощена (одна повторна спроба на
+        провайдер, без repair-промпта), а якщо основна модель вичерпала безкоштовну
+        квоту — запит автоматично йде на резервного провайдера.
       </div>
     </header>
 
@@ -191,7 +251,7 @@
       <textarea id="input" maxlength="1200"
         placeholder="Наприклад: треба щоб дзвінки з відділу продажів автоматично лягали саммарі в PlanFix"></textarea>
       <div class="composer-row">
-        <button id="submit">Класифікувати</button>
+        <button id="submit" class="primary">Класифікувати</button>
         <button id="sample" class="ghost" type="button">Підставити приклад</button>
         <span class="counter" id="counter">0 / 1000</span>
       </div>
@@ -206,6 +266,12 @@
         <h2>2. Дошка</h2>
         <span class="meta-line" id="board-meta"></span>
       </div>
+      <p class="meta-line" style="margin-bottom: 10px;">
+        Усередині кожної колонки — від високого пріоритету до низького. Позначте
+        свій запит галочкою, щоб перемістити його в «Виконано»: чекбокс доступний
+        лише для запитів, доданих через форму вище — 18 базових карток лишаються
+        незмінним знімком реального прогону.
+      </p>
       <div class="board" id="board"></div>
     </section>
 
@@ -217,223 +283,8 @@
   </div>
 
   <script type="module">
-    const CATEGORIES = [
-      { key: "automation",  label: "автоматизація" },
-      { key: "integration", label: "інтеграція" },
-      { key: "reporting",   label: "звіт/аналітика" },
-      { key: "bug",         label: "баг/підтримка" },
-      { key: "question",    label: "питання/консультація" },
-      { key: "out",         label: "поза скоупом" },
-    ];
-    const MAX_CHARS = 1000;
-    const STORE_KEY = "triage-demo-added-v1";
-
-    const el = (id) => document.getElementById(id);
-    const board = el("board");
-    const input = el("input");
-    const alertBox = el("alert");
-    const staging = el("staging");
-
-    /** Everything from the model or the visitor goes through here. */
-    function text(value, fallback = "—") {
-      const s = value === null || value === undefined || value === "" ? fallback : String(value);
-      return s;
-    }
-    function node(tag, className, textContent) {
-      const n = document.createElement(tag);
-      if (className) n.className = className;
-      if (textContent !== undefined) n.textContent = textContent;
-      return n;
-    }
-
-    function showAlert(message) {
-      alertBox.textContent = message;
-      alertBox.hidden = false;
-    }
-    function clearAlert() { alertBox.hidden = true; }
-
-    // ── state ────────────────────────────────────────────────
-    let baseline = [];
-    let added = loadAdded();
-
-    function loadAdded() {
-      try {
-        const raw = localStorage.getItem(STORE_KEY);
-        const parsed = raw ? JSON.parse(raw) : [];
-        return Array.isArray(parsed) ? parsed : [];
-      } catch { return []; }
-    }
-    function saveAdded() {
-      try { localStorage.setItem(STORE_KEY, JSON.stringify(added)); } catch { /* private mode */ }
-    }
-
-    // ── rendering ────────────────────────────────────────────
-    function buildCard(item, isNew) {
-      const t = item.triage;
-      const card = node("div", `card p-${t.priority}`);
-      if (isNew) card.classList.add("is-new");
-
-      const id = node("div", "card-id");
-      id.append(node("span", null, item.id), node("span", null, "·"), node("span", null, item.channel || "демо"));
-      card.append(id);
-
-      card.append(node("div", "card-summary", text(t.short_summary)));
-
-      const badges = node("div", "badges");
-      badges.append(node("span", `badge prio-${t.priority}`, t.priority));
-      if (t.domain) badges.append(node("span", "badge", t.domain));
-      if (t.target_department) badges.append(node("span", "badge", `від: ${t.target_department}`));
-      (t.mentioned_systems || []).slice(0, 3).forEach((s) => badges.append(node("span", "badge", s)));
-      if (t.needs_clarification) badges.append(node("span", "badge clarify", "потребує уточнення"));
-      card.append(badges);
-
-      if (t.needs_clarification && (t.clarifying_questions || []).length) {
-        const box = node("div", "questions");
-        box.append(node("div", null, "Що спитати замовника:"));
-        const ul = node("ul");
-        t.clarifying_questions.forEach((q) => ul.append(node("li", null, q)));
-        box.append(ul);
-        card.append(box);
-      }
-
-      if (item.local) {
-        const actions = node("div", "card-actions");
-        const btn = node("button", "ghost", "Надіслати в Telegram");
-        btn.addEventListener("click", () => sendToTelegram(item, actions, btn));
-        actions.append(btn);
-        card.append(actions);
-      }
-      return card;
-    }
-
-    function render(newId = null) {
-      const all = [...baseline, ...added];
-      board.replaceChildren();
-
-      for (const cat of CATEGORIES) {
-        const items = all.filter((i) => i.triage.category === cat.label);
-        const col = node("div", "column");
-        const title = node("div", "column-title");
-        title.append(node("span", null, cat.label), node("span", "count", String(items.length)));
-        col.append(title);
-        items.forEach((i) => col.append(buildCard(i, i.id === newId)));
-        board.append(col);
-      }
-
-      const clarify = all.filter((i) => i.triage.needs_clarification).length;
-      el("board-meta").textContent =
-        `${all.length} запитів · ${clarify} потребують уточнення`;
-    }
-
-    // ── actions ──────────────────────────────────────────────
-    async function classify() {
-      const value = input.value.trim();
-      clearAlert();
-      if (!value) { showAlert("Спершу впишіть текст запиту."); return; }
-      if (value.length > MAX_CHARS) {
-        showAlert(`Задовгий запит: ${value.length} із ${MAX_CHARS} символів.`); return;
-      }
-
-      el("submit").disabled = true;
-      staging.hidden = false;
-
-      try {
-        const response = await fetch("/api/triage", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ text: value }),
-        });
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          showAlert(data.error || `Помилка ${response.status}.`);
-          return;
-        }
-
-        const item = {
-          id: `NEW-${String(added.length + 1).padStart(3, "0")}`,
-          channel: "веб-демо",
-          raw_text: value,
-          triage: data.triage,
-          local: true,
-        };
-        added.push(item);
-        saveAdded();
-        input.value = "";
-        updateCounter();
-        render(item.id);
-
-        // Bring the column it landed in into view — the point of the demo is
-        // seeing where it went.
-        const index = CATEGORIES.findIndex((c) => c.label === data.triage.category);
-        if (index >= 0) board.children[index]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      } catch {
-        showAlert("Не вдалося зв'язатися з сервісом. Дошка нижче лишається робочою.");
-      } finally {
-        staging.hidden = true;
-        el("submit").disabled = false;
-      }
-    }
-
-    async function sendToTelegram(item, container, btn) {
-      btn.disabled = true;
-      btn.textContent = "Надсилаю…";
-      try {
-        const response = await fetch("/api/telegram", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ raw_text: item.raw_text, triage: item.triage }),
-        });
-        const data = await response.json().catch(() => ({}));
-        if (response.ok && data.sent) {
-          container.replaceChildren(node("span", "sent", "надіслано в Telegram"));
-        } else {
-          btn.disabled = false;
-          btn.textContent = "Надіслати в Telegram";
-          showAlert(data.error || "Не вдалося надіслати.");
-        }
-      } catch {
-        btn.disabled = false;
-        btn.textContent = "Надіслати в Telegram";
-        showAlert("Не вдалося надіслати в Telegram.");
-      }
-    }
-
-    function updateCounter() {
-      const n = input.value.trim().length;
-      const c = el("counter");
-      c.textContent = `${n} / ${MAX_CHARS}`;
-      c.classList.toggle("over", n > MAX_CHARS);
-    }
-
-    // ── boot ─────────────────────────────────────────────────
-    input.addEventListener("input", updateCounter);
-    el("submit").addEventListener("click", classify);
-    input.addEventListener("keydown", (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") classify();
-    });
-    el("sample").addEventListener("click", () => {
-      input.value = "Терміново! Аналітика просить дашборд, який раз на день тягне дані з BigQuery і показує різкі стрибки витрат по підрядниках.";
-      updateCounter();
-      input.focus();
-    });
-
-    fetch("/data/baseline.json")
-      .then((r) => r.json())
-      .then((data) => {
-        baseline = data.requests || [];
-        const run = data.source_run || {};
-        el("run-meta").textContent =
-          `дошка — реальний прогін пайплайна: ${run.ok}/${run.total} успішно, ` +
-          `${run.llm_calls} викликів, ${(run.prompt_tokens + run.output_tokens).toLocaleString("uk")} токенів, модель ${data.model}`;
-        render();
-      })
-      .catch(() => {
-        el("run-meta").textContent = "не вдалося завантажити базові дані";
-        render();
-      });
-
-    updateCounter();
+    import { boot } from "/app.js";
+    boot();
   </script>
 </body>
 </html>

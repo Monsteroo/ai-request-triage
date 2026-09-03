@@ -8,15 +8,20 @@
 // generated from the Python source (scripts/export_worker_contract.py) and so
 // cannot drift. The *orchestration* is not: Python retries four times with a
 // repair prompt and a run-level quota guard, which does not translate to a
-// request-scoped edge function. Here it is one retry. The page says so.
+// request-scoped edge function. Here it is one retry per provider. The page
+// says so.
+//
+// Classification falls through a provider chain (see providers.js): Gemini
+// first, then two free hosts of OpenAI's open-weight gpt-oss-120b (Groq, then
+// Cerebras) if Gemini is rate-limited or unconfigured. Any subset of the three
+// secrets may be set — the chain uses whichever are present.
 
 import { CONTRACT } from "./generated/contract.js";
 import { checkTriageLimits, dayStamp, hit } from "./limits.js";
+import { buildProviderChain, runProviderChain } from "./providers.js";
 import { extractJson, validateTriage } from "./validate.js";
 
-const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const MAX_INPUT_CHARS = 1000;
-const MAX_OUTPUT_TOKENS = 1200;
 
 const LIMITS = {
   perIpPerDay: 15,
@@ -51,55 +56,8 @@ function buildUserPrompt(text) {
   );
 }
 
-async function callGemini(apiKey, userPrompt) {
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent` +
-    `?key=${encodeURIComponent(apiKey)}`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: CONTRACT.systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: CONTRACT.responseSchema,
-        temperature: 0,
-        seed: 0,
-        maxOutputTokens: MAX_OUTPUT_TOKENS,
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    const error = new Error(`Gemini ${response.status}`);
-    error.status = response.status;
-    // A daily quota is not worth retrying inside one request — the same
-    // distinction the Python client makes between PerDay and PerMinute.
-    error.quotaExhausted =
-      response.status === 429 && /perday|per day/i.test(detail);
-    throw error;
-  }
-
-  const data = await response.json();
-  const candidate = data?.candidates?.[0];
-  const finish = candidate?.finishReason;
-  if (finish === "MAX_TOKENS") throw new Error("відповідь моделі обрізана лімітом токенів");
-  if (finish && ["SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT"].includes(finish)) {
-    throw new Error(`модель заблокувала запит (${finish})`);
-  }
-
-  const text = (candidate?.content?.parts || []).map((p) => p.text || "").join("");
-  if (!text.trim()) throw new Error("порожня відповідь моделі");
-  return text;
-}
-
-/** One classify attempt: call, parse, validate. */
-async function attempt(apiKey, text) {
-  const raw = await callGemini(apiKey, buildUserPrompt(text));
+/** Parse and validate one provider's raw reply — the same gate for all of them. */
+function classify(raw) {
   let parsed;
   try {
     parsed = JSON.parse(extractJson(raw));
@@ -110,8 +68,12 @@ async function attempt(apiKey, text) {
 }
 
 async function handleTriage(request, env) {
-  if (!env.GEMINI_API_KEY) {
-    return json({ error: "Демо не налаштоване: немає ключа моделі." }, 503);
+  const chain = buildProviderChain(env, CONTRACT.responseSchema);
+  if (!chain.length) {
+    return json(
+      { error: "Демо не налаштоване: немає жодного ключа моделі (Gemini, Groq, Cerebras)." },
+      503
+    );
   }
 
   let body;
@@ -133,30 +95,21 @@ async function handleTriage(request, env) {
   const gate = await checkTriageLimits(env.RATE_LIMITS, clientIp(request), LIMITS);
   if (!gate.allowed) return json({ error: gate.message, reason: gate.reason }, 429);
 
-  // One retry, then an honest failure. Python's repair prompt earns its keep
-  // over a whole batch; inside a single web request the extra latency does not.
-  let last = null;
-  for (let i = 0; i < 2; i += 1) {
-    try {
-      const result = await attempt(env.GEMINI_API_KEY, text);
-      if (result.ok) return json({ triage: result.value });
-      last = result.errors.join("; ");
-    } catch (error) {
-      if (error.quotaExhausted) {
-        return json(
-          {
-            error:
-              "Денна квота безкоштовного тіру Gemini вичерпана. Дошка нижче лишається робочою.",
-            reason: "quota",
-          },
-          429
-        );
-      }
-      last = error.message;
-    }
+  const result = await runProviderChain(chain, CONTRACT.systemPrompt, buildUserPrompt(text), classify);
+
+  if (result.ok) {
+    return json({
+      triage: result.value,
+      provider: result.provider,
+      providerLabel: result.providerLabel,
+    });
   }
 
-  return json({ error: `Не вдалося класифікувати: ${last}` }, 502);
+  const last = result.attempts[result.attempts.length - 1] || "невідома причина";
+  return json(
+    { error: `Жоден провайдер не впорався (${chain.length}): ${last}`, reason: "all_failed" },
+    502
+  );
 }
 
 async function handleTelegram(request, env) {

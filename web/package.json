@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Live demo for the request-triage pipeline: static page plus a Worker API.",
   "scripts": {
-    "test": "node --test worker/*.test.js",
+    "test": "node --test worker/*.test.js public/*.test.js",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   }
