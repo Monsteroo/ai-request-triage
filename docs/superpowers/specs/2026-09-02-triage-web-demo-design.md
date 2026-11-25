@@ -1,7 +1,7 @@
 # Живе демо тріажу — дизайн
 
 **Дата:** 2026-09-02
-**Адреса:** `testwork-netpeak.vitaliimaslii.com`
+**Адреса:** `triage.vitaliimaslii.com`
 **Мета:** показати роботу пайплайна `ai-request-triage` наживо — рекрутер відкриває
 посилання, вписує будь-який запит і бачить, як той класифікується.
 
@@ -28,7 +28,7 @@
 походження, тому CORS не потрібен узагалі; один деплой; один субдомен.
 
 ```
-testwork-netpeak.vitaliimaslii.com
+triage.vitaliimaslii.com
         │
         ├── /                 → web/public/index.html   (статика)
         ├── /data/baseline.json → 18 запитів реального прогону

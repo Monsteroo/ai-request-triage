@@ -4,7 +4,7 @@
 репозиторію його класифікує. Дошка внизу заповнена **реальним виводом** прогону
 (18/18 без помилок), а не вигаданими прикладами.
 
-Адреса: `testwork-netpeak.vitaliimaslii.com`
+Адреса: `triage.vitaliimaslii.com`
 
 ---
 
@@ -132,8 +132,8 @@ npx wrangler deploy
 
 ### 5. Субдомен
 
-У дашборді Cloudflare: **Workers & Pages → testwork-netpeak → Settings →
-Domains & Routes → Add → Custom domain** → `testwork-netpeak.vitaliimaslii.com`.
+У дашборді Cloudflare: **Workers & Pages → ai-request-triage → Settings →
+Domains & Routes → Add → Custom domain** → `triage.vitaliimaslii.com`.
 DNS-запис Cloudflare створить сам, бо домен уже в тому ж акаунті.
 
 ---

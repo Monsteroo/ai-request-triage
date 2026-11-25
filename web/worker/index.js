@@ -1,4 +1,4 @@
-// Cloudflare Worker behind testwork-netpeak.vitaliimaslii.com
+// Cloudflare Worker behind triage.vitaliimaslii.com
 //
 // Serves the demo page from [assets] and handles /api/* itself. One origin,
 // so there is no CORS to configure and nothing to get subtly wrong.

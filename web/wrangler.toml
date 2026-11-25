@@ -1,11 +1,11 @@
-name = "testwork-netpeak"
+name = "ai-request-triage"
 main = "worker/index.js"
 compatibility_date = "2026-08-09"
 
 # The zone lives in the same Cloudflare account, so wrangler creates the DNS
 # record itself on deploy — no dashboard step.
 [[routes]]
-pattern = "testwork-netpeak.vitaliimaslii.com"
+pattern = "triage.vitaliimaslii.com"
 custom_domain = true
 
 # The page and the API share one origin: assets are served from ./public and

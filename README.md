@@ -1,6 +1,6 @@
 # Тріаж вхідних запитів AI-юніту
 
-> 🌐 **Живе веб-демо:** [testwork-netpeak.vitaliimaslii.com](https://testwork-netpeak.vitaliimaslii.com)  
+> 🌐 **Живе веб-демо:** [triage.vitaliimaslii.com](https://triage.vitaliimaslii.com)  
 > 🤖 **Telegram-бот сповіщень:** [@netpeak_triage_test_bot](https://t.me/netpeak_triage_test_bot)
 
 Сервіс автоматичного тріажу неструктурованих вхідних запитів (Slack, Telegram, пошта) в AI-юніт: перетворює довільний текст у строгу валідовану структуру, визначає пріоритети, відділи та генерує список блокуючих запитань до замовника.
